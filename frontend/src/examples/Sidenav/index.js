@@ -24,55 +24,17 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const location = useLocation();
   const collapseName = location.pathname.replace("/", "");
 
-  const refreshAccessToken = async () => {
-    const refresh = localStorage.getItem("refresh");
-    if (!refresh) return null;
-
-    try {
-      const response = await fetch("http://127.0.0.1:8000/api/token/refresh/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refresh }),
-      });
-      const data = await response.json();
-      if (data.access) {
-        localStorage.setItem("token", data.access);
-        return data.access;
-      }
-    } catch (err) {
-      console.error("Refresh failed:", err);
-    }
-    return null;
-  };
-
   const handleLogout = async () => {
-    let token = localStorage.getItem("token");
-    const refresh = localStorage.getItem("refresh");
+    const token = localStorage.getItem("token");
 
     try {
-      let response = await fetch("http://127.0.0.1:8000/api/logout/", {
+      const response = await fetch("http://127.0.0.1:8000/api/logout/", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ refresh }),
       });
-
-      // If token expired, refresh and retry
-      if (response.status === 401) {
-        token = await refreshAccessToken();
-        if (token) {
-          response = await fetch("http://127.0.0.1:8000/api/logout/", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ refresh }),
-          });
-        }
-      }
 
       if (response.ok) {
         localStorage.clear();

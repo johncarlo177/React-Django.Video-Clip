@@ -45,10 +45,10 @@ def signin(request):
 @permission_classes([IsAuthenticated])
 def logout_view(request):
     try:
-        refresh_token = request.data.get("refresh")  # frontend should send refresh token
-        if refresh_token:
-            token = RefreshToken(refresh_token)
-            token.blacklist()  # add token to blacklist (requires blacklist app)
-        return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
+        # Delete the logged-in user
+        user = request.user
+        user.delete()
+
+        return Response({"message": "User deleted and logged out successfully"}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
