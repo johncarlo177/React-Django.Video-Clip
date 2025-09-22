@@ -3,6 +3,8 @@ import Upload from "layouts/upload";
 import Billing from "layouts/subscription";
 import FAQ from "layouts/faq";
 import Profile from "layouts/profile";
+import SignIn from "layouts/authentication/sign-in";
+import SignUp from "layouts/authentication/sign-up";
 import Icon from "@mui/material/Icon";
 
 const routes = [
@@ -46,6 +48,22 @@ const routes = [
     icon: <Icon fontSize="small">person</Icon>,
     route: "/contact",
     component: <Profile />,
+  },
+  {
+    type: "collapse",
+    name: "Sign In",
+    key: "sign-in",
+    icon: <Icon fontSize="small">login</Icon>,
+    route: "/sign-in",
+    component: <SignIn />,
+  },
+  {
+    type: "collapse",
+    name: "Sign Up",
+    key: "sign-up",
+    icon: <Icon fontSize="small">assignment</Icon>,
+    route: "/sign-up",
+    component: <SignUp />,
   },
 ];
 
