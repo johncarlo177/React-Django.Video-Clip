@@ -24,6 +24,7 @@ const routes = [
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/upload",
     component: <Upload />,
+    protected: true,
   },
   {
     type: "collapse",
@@ -32,6 +33,7 @@ const routes = [
     icon: <Icon fontSize="small">receipt_long</Icon>,
     route: "/subscription",
     component: <Billing />,
+    protected: true,
   },
   {
     type: "collapse",
@@ -40,6 +42,7 @@ const routes = [
     icon: <Icon fontSize="small">notifications</Icon>,
     route: "/FAQ",
     component: <FAQ />,
+    protected: true,
   },
   {
     type: "collapse",
@@ -48,6 +51,7 @@ const routes = [
     icon: <Icon fontSize="small">person</Icon>,
     route: "/contact",
     component: <Profile />,
+    protected: true,
   },
   {
     type: "collapse",
@@ -56,6 +60,7 @@ const routes = [
     icon: <Icon fontSize="small">login</Icon>,
     route: "/sign-in",
     component: <SignIn />,
+    publicOnly: true,
   },
   {
     type: "collapse",
@@ -64,6 +69,7 @@ const routes = [
     icon: <Icon fontSize="small">assignment</Icon>,
     route: "/sign-up",
     component: <SignUp />,
+    publicOnly: true,
   },
 ];
 

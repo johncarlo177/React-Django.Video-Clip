@@ -26,6 +26,19 @@ PrivateRoute.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
+function PublicRoute({ children }) {
+  const token = localStorage.getItem("token");
+  if (token) {
+    // If already logged in, redirect away
+    return <Navigate to="/dashboard" replace />;
+  }
+  return children;
+}
+
+PublicRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
 export default function App() {
   const [controller, dispatch] = useMaterialUIController();
   const {
@@ -80,6 +93,17 @@ export default function App() {
               key={route.key}
               path={route.route}
               element={<PrivateRoute>{route.component}</PrivateRoute>}
+            />
+          );
+        }
+
+        // Public routes (sign-in, sign-up, etc.)
+        if (route.publicOnly) {
+          return (
+            <Route
+              key={route.key}
+              path={route.route}
+              element={<PublicRoute>{route.component}</PublicRoute>}
             />
           );
         }
