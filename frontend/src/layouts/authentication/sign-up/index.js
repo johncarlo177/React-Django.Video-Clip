@@ -13,6 +13,7 @@ import MDButton from "components/MDButton";
 // Authentication layout components
 import CoverLayout from "layouts/authentication/components/CoverLayout";
 import bgImage from "assets/images/bg-sign-up-cover.jpeg";
+import axiosInstance from "libs/axios";
 
 function Cover() {
   const [name, setName] = useState("");
@@ -47,21 +48,16 @@ function Cover() {
     if (!validate()) return;
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/signup/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+      const response = await axiosInstance.post("/signup/", {
+        name,
+        email,
+        password,
       });
-
-      const data = await response.json();
+      const data = await response.data;
       console.log(data);
 
-      if (response.ok) {
-        // Redirect to sign-in page and pass email/password
-        navigate("/sign-in", { state: { email, password } });
-      } else {
-        alert("Sign up failed: " + JSON.stringify(data));
-      }
+      // Redirect to sign-in page and pass email/password
+      navigate("/sign-in", { state: { email, password } });
     } catch (err) {
       console.error("Error during sign up:", err);
       alert("Something went wrong. Please try again.");

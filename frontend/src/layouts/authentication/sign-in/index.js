@@ -10,6 +10,7 @@ import MDButton from "components/MDButton";
 
 import BasicLayout from "layouts/authentication/components/BasicLayout";
 import bgImage from "assets/images/bg-sign-in-basic.jpeg";
+import axiosInstance from "libs/axios";
 
 function Basic() {
   const navigate = useNavigate();
@@ -47,22 +48,23 @@ function Basic() {
     if (!validate()) return;
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/signin/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+      const response = await axiosInstance.post("/signin/", {
+        email,
+        password,
       });
-      const data = await response.json();
 
-      if (data.access) {
+      const data = await response.data;
+
+      if (data.access && data.refresh) {
         localStorage.setItem("token", data.access);
+        localStorage.setItem("refresh_token", data.refresh);
         navigate("/dashboard");
       } else {
-        setFormError("Login failed: Invalid credentials");
+        setFormError("Login failed: Invalid credentials.");
       }
     } catch (err) {
       console.error(err);
-      setFormError("Something went wrong. Please try again.");
+      setFormError("Login failed: Invalid credentials.");
     }
   };
 
