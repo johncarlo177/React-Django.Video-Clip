@@ -1,41 +1,70 @@
-/**
-=========================================================
-* Material Dashboard 2 React - v2.2.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
 import { useState } from "react";
-
-// react-router-dom components
-import { Link } from "react-router-dom";
-
-// @mui material components
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import Card from "@mui/material/Card";
 import Switch from "@mui/material/Switch";
 
-// Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDInput from "components/MDInput";
 import MDButton from "components/MDButton";
 
-// Authentication layout components
 import BasicLayout from "layouts/authentication/components/BasicLayout";
-
-// Images
 import bgImage from "assets/images/bg-sign-in-basic.jpeg";
 
 function Basic() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [email, setEmail] = useState(location.state?.email || "");
+  const [password, setPassword] = useState(location.state?.password || "");
+  const [errors, setErrors] = useState({}); // field validation errors
+  const [formError, setFormError] = useState(""); // server error
   const [rememberMe, setRememberMe] = useState(false);
+
+  const validate = () => {
+    const newErrors = {};
+
+    if (!email) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Email is invalid";
+    }
+
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSignin = async (e) => {
+    e.preventDefault();
+    setFormError("");
+
+    if (!validate()) return;
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/signin/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+
+      if (data.access) {
+        localStorage.setItem("token", data.access);
+        navigate("/dashboard");
+      } else {
+        setFormError("Login failed: Invalid credentials");
+      }
+    } catch (err) {
+      console.error(err);
+      setFormError("Something went wrong. Please try again.");
+    }
+  };
 
   const handleSetRememberMe = () => setRememberMe(!rememberMe);
 
@@ -58,14 +87,34 @@ function Basic() {
           </MDTypography>
         </MDBox>
         <MDBox pt={4} pb={3} px={3}>
-          <MDBox component="form" role="form">
-            <MDBox mb={2}>
-              <MDInput type="email" label="Email" fullWidth />
-            </MDBox>
-            <MDBox mb={2}>
-              <MDInput type="password" label="Password" fullWidth />
-            </MDBox>
-            <MDBox display="flex" alignItems="center" ml={-1}>
+          <MDBox component="form" role="form" onSubmit={handleSignin}>
+            <MDInput
+              type="email"
+              label="Email"
+              fullWidth
+              sx={{ mb: 2 }}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              error={!!errors.email}
+              helperText={errors.email}
+              FormHelperTextProps={{
+                sx: { color: "red", mt: 1, fontSize: "14px" },
+              }}
+            />
+            <MDInput
+              type="password"
+              label="Password"
+              fullWidth
+              sx={{ mb: 2 }}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              error={!!errors.password}
+              helperText={errors.password}
+              FormHelperTextProps={{
+                sx: { color: "red", mt: 1, fontSize: "14px" },
+              }}
+            />
+            <MDBox display="flex" alignItems="center" ml={-1} mb={2}>
               <Switch checked={rememberMe} onChange={handleSetRememberMe} />
               <MDTypography
                 variant="button"
@@ -77,9 +126,17 @@ function Basic() {
                 &nbsp;&nbsp;Remember me
               </MDTypography>
             </MDBox>
-            <MDBox mt={4} mb={1}>
-              <MDButton variant="gradient" color="info" fullWidth>
-                sign in
+
+            {/* Display server error */}
+            {formError && (
+              <MDTypography sx={{ color: "red", mb: 2, fontSize: "14px" }}>
+                {formError}
+              </MDTypography>
+            )}
+
+            <MDBox mt={2} mb={1}>
+              <MDButton type="submit" variant="gradient" color="info" fullWidth>
+                Sign In
               </MDButton>
             </MDBox>
             <MDBox mt={3} mb={1} textAlign="center">
@@ -87,7 +144,7 @@ function Basic() {
                 Don&apos;t have an account?{" "}
                 <MDTypography
                   component={Link}
-                  to="/authentication/sign-up"
+                  to="/sign-up"
                   variant="button"
                   color="info"
                   fontWeight="medium"
