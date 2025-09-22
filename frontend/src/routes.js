@@ -38,7 +38,7 @@ Coded by www.creative-tim.com
 // Material Dashboard 2 React layouts
 import Dashboard from "layouts/dashboard";
 import Upload from "layouts/upload";
-import Billing from "layouts/billing";
+import Billing from "layouts/subscription";
 import FAQ from "layouts/faq";
 import Profile from "layouts/profile";
 import SignIn from "layouts/authentication/sign-in";
