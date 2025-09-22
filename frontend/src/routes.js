@@ -60,7 +60,7 @@ const routes = [
     icon: <Icon fontSize="small">login</Icon>,
     route: "/sign-in",
     component: <SignIn />,
-    // publicOnly: true,
+    publicOnly: true,
   },
   {
     type: "collapse",
@@ -69,7 +69,7 @@ const routes = [
     icon: <Icon fontSize="small">assignment</Icon>,
     route: "/sign-up",
     component: <SignUp />,
-    // publicOnly: true,
+    publicOnly: true,
   },
 ];
 
