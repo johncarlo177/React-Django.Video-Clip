@@ -31,7 +31,7 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 
-function Notifications() {
+function FAQ() {
   const [successSB, setSuccessSB] = useState(false);
   const [infoSB, setInfoSB] = useState(false);
   const [warningSB, setWarningSB] = useState(false);
@@ -113,7 +113,7 @@ function Notifications() {
   return (
     <DashboardLayout>
       <DashboardNavbar />
-      <MDBox mt={6} mb={3}>
+      {/* <MDBox mt={6} mb={3}>
         <Grid container spacing={3} justifyContent="center">
           <Grid item xs={12} lg={8}>
             <Card>
@@ -188,10 +188,9 @@ function Notifications() {
             </Card>
           </Grid>
         </Grid>
-      </MDBox>
-      <Footer />
+      </MDBox> */}
     </DashboardLayout>
   );
 }
 
-export default Notifications;
+export default FAQ;
