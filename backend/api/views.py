@@ -19,6 +19,7 @@ def hello(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def signup(request):
+    print(request)
     name = request.data.get("name")
     email = request.data.get("email")
     password = request.data.get("password")
