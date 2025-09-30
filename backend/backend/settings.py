@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -141,9 +142,35 @@ SIMPLE_JWT = {
 }
 
 AUTH_USER_MODEL = 'api.User'
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+]
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+# Upload file on Dropbox
+INSTALLED_APPS += [
+    "storages",
+]
+
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.dropbox.DropboxStorage",
+        "OPTIONS": {
+            "oauth2_token": "sl.u.AGDpUGOMJ1G7KdYCoWfc1DSpd0LUt3qJydoA_NmHihtI9Nbgig1JjBJx_JxiZv0cXzidZOdwvQEsSFUvyes6a-6RMrD_dcKpepK0Db0fYnjel1vQX79eEB7NkKoccSgxL2X30bkQdtsRTDsrzQHKVnOLdRcY1IpO4VM0bwippNzEx5y15MMHipntMxukDniWaJonK1G840v9YfvjiiAhtlPV0DM3XQ-moaIBaWht_T-sDnjmQbZIUBRatLV55-DJAK6NtyXPs2CcQkvRXJO7kMAj2uB2Ng_-Gr2EvYKaFzQBeSGwRp_lVEszSEVgXi8QA5WV9e8Fk54houKD7gO8R6ExpdKfIy_0AQ0ZyEE8vd-yacrBY-yWshAwZ_8Fto-Kbc9RiSUMZ1PCzTG0tpmh7OjDC0bqVt3Ek25gLy-ggRzMVm0D9XpSepjtVKHFfD2pujFdUYQHRVfnh4P-zAR7tDrfOJe2nrAQKHKXTcnQFu2ZOvynh9IY0yZLKhhYTFJqNYhFO6NTnA5vnw1E4l7GYzfl4Va_rbcTlRxXFI8l5IoMf03OERvmUnpYRM9H1xYcXrxFszT2nKacTcNHqX4bIXM1Q5teRd6K3lUyqobmcpkazQhaG65J8g8XF3VQRtRRi2v7ilBkFLYd3ZF6WMWsePI9gyMztDwjQeXVehxPkdHO4ybbf5RAL978e0iVBNjg0bJ3Gyi6xj14iGL7kUll6R1PosEB5zovIgCT16quBmDzFuDc4DU7l7BipfMt7WUs-cUEATzIMN0ld8yVV0hoj4874ISYLgd1I8YjDkvPhHq3wyu9a2mJYupLfX6d-IKntanLeCgDZiuYqUHhP5clqEHt5H3UGbLA8P0Lp2EZs4EMYUrfdRecjSBuP6cCLDBkQMuQbusY74oLQXHVORA8XpaNEyHSuUjCynAjvQ9kE1ok92mx2zEthWODQBA2XWWEovPvvn9nyj77rbWYKIrk5UL1HbJ7OvYmeLPcFieBLNM38AAcW146e_1t5mHUQF7yArrpYIPGmXgjMoGyxzaLmHdmxi4a-LfJS5fnc3TDRH83tgDwcIQhNaaSgFIwba1dpdCS9h-1GyynMBAmXLnkd_mOXNqAn3KHV9zx-vbpWZ53ZW39vJ9VrTGw_Z9dvuvn5mUuffsaudAI1PM9t-3gR5qkqlBPrm2L7XqfxqKXQJ8eRwlwlMgFmMNg3ng5huidw4lsIOhuCDp6IOLSku7Ifaqk_bA6INhrCpVKzxLwRQNRKkyX54bXFRMthc13BiUEoDGbfxUTpF-v49kc0mk0weJTmgO0goEdW7yBUW1Xf3XSjYKQNVOECKjYzNdGR7l-dMldlRNALpkWY_R3uHlwGbkbOkYzFnW-RL6h6-jYOOWrOcY_cabuWyl57Am1dNoINm0tcCH4hyjRwNR1iO_DhmAC9KXTOTm9lsAZa25Xj8uZqw",
+            "root_path": "/your_app_folder",
+        },
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 1048576000  # ~1GB, adjust as needed
+FILE_UPLOAD_MAX_MEMORY_SIZE = 1048576000
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")

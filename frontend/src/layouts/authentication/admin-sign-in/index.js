@@ -12,7 +12,7 @@ import BasicLayout from "layouts/authentication/components/BasicLayout";
 import bgImage from "assets/images/bg-sign-in-basic.jpeg";
 import axiosInstance from "libs/axios";
 
-function Basic() {
+function AdminBasic() {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -48,17 +48,16 @@ function Basic() {
     if (!validate()) return;
 
     try {
-      const response = await axiosInstance.post("/api/signin/", {
+      const response = await axiosInstance.post("/api/admin-signin/", {
         email,
         password,
       });
 
       const data = await response.data;
 
-      if (data.access && data.refresh) {
-        localStorage.setItem("access_token", data.access);
-        localStorage.setItem("refresh_token", data.refresh);
-        navigate("/dashboard");
+      if (data.access) {
+        localStorage.setItem("admin-token", data.access);
+        navigate("/admin/dashboard");
       } else {
         setFormError("Login failed: Invalid credentials.");
       }
@@ -141,21 +140,6 @@ function Basic() {
                 Sign In
               </MDButton>
             </MDBox>
-            <MDBox mt={3} mb={1} textAlign="center">
-              <MDTypography variant="button" color="text">
-                Don&apos;t have an account?{" "}
-                <MDTypography
-                  component={Link}
-                  to="/sign-up"
-                  variant="button"
-                  color="info"
-                  fontWeight="medium"
-                  textGradient
-                >
-                  Sign up
-                </MDTypography>
-              </MDTypography>
-            </MDBox>
           </MDBox>
         </MDBox>
       </Card>
@@ -163,4 +147,4 @@ function Basic() {
   );
 }
 
-export default Basic;
+export default AdminBasic;

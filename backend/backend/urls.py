@@ -17,13 +17,17 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from api.views import hello
-from api.views import signup, signin, refresh_token, logout_view
+from django.conf import settings
+from django.conf.urls.static import static
+from api.views import signup, signin, refresh_token, logout_view, admin_signin, FileUploadView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/hello/', hello),
     path("api/signup/", signup),
     path("api/signin/", signin),
+    path("api/admin-signin/", admin_signin),
     path("api/token/refresh/", refresh_token),
     path("api/logout/", logout_view),
-]
+    path("upload/", FileUploadView.as_view(), name="file-upload"),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

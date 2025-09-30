@@ -5,8 +5,13 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
 from .models import User
-from rest_framework_simplejwt.tokens import RefreshToken, TokenError
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError, AccessToken
 from django.contrib.auth import get_user_model
+from django.conf import settings
+import requests
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+from .serializers import UploadedFileSerializer
 
 User = get_user_model()
 
@@ -47,6 +52,28 @@ def signin(request):
         })
     else:
         return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
+# Admin Signin
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def admin_signin(request):
+    email = request.data.get("email")
+    password = request.data.get("password")
+
+    # Hardcoded admin credentials
+    ADMIN_EMAIL = "admin@example.com"
+    ADMIN_PASSWORD = "admin123"
+
+    if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
+        # Create a simple access token (no refresh)
+        token = AccessToken()
+        token["role"] = "admin"   # custom claim to mark admin
+
+        return Response({
+            "access": str(token),
+        }, status=status.HTTP_200_OK)
+
+    return Response({"error": "Invalid admin credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
 # Refresh token
 @api_view(["POST"])
@@ -93,3 +120,19 @@ def logout_view(request):
         return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class FileUploadView(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, format=None):
+        print("User:", request.user)
+        print("Data:", request.data)
+        serializer = UploadedFileSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response({"message": "File uploaded successfully", "file": serializer.data})
+        print("Errors:", serializer.errors)
+        return Response(serializer.errors, status=400)
+

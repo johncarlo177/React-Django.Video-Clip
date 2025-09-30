@@ -4,7 +4,12 @@ import Billing from "layouts/subscription";
 import FAQ from "layouts/faq";
 import Profile from "layouts/profile";
 import SignIn from "layouts/authentication/sign-in";
+import AdminSignIn from "layouts/authentication/admin-sign-in";
+import AdminDashboard from "layouts/admin-dashboard";
 import SignUp from "layouts/authentication/sign-up";
+import Deliveries from "layouts/deliveries";
+import PaymentStatus from "layouts/payment-status";
+import ViewUploads from "layouts/view-uploads";
 import Icon from "@mui/material/Icon";
 
 const routes = [
@@ -57,7 +62,6 @@ const routes = [
     type: "collapse",
     name: "Sign In",
     key: "sign-in",
-    icon: <Icon fontSize="small">login</Icon>,
     route: "/sign-in",
     component: <SignIn />,
     publicOnly: true,
@@ -66,10 +70,49 @@ const routes = [
     type: "collapse",
     name: "Sign Up",
     key: "sign-up",
-    icon: <Icon fontSize="small">assignment</Icon>,
     route: "/sign-up",
     component: <SignUp />,
     publicOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "admin",
+    key: "admin",
+    route: "/admin/sign-in",
+    component: <AdminSignIn />,
+    publicOnly: true,
+  },
+  {
+    type: "collapse",
+    name: "admin-dashboard",
+    key: "admin-dashboard",
+    route: "/admin/dashboard",
+    component: <AdminDashboard />,
+    admin: true,
+  },
+  {
+    type: "collapse",
+    name: "view-uploads",
+    key: "view-uploads",
+    route: "/admin/view-uploads",
+    component: <ViewUploads />,
+    admin: true,
+  },
+  {
+    type: "collapse",
+    name: "payment-status",
+    key: "payment-status",
+    route: "/admin/payment-status",
+    component: <PaymentStatus />,
+    admin: true,
+  },
+  {
+    type: "collapse",
+    name: "deliveries",
+    key: "deliveries",
+    route: "/admin/deliveries",
+    component: <Deliveries />,
+    admin: true,
   },
 ];
 
