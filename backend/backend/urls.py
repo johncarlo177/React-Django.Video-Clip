@@ -19,7 +19,7 @@ from django.urls import path, include
 from api.views import hello
 from django.conf import settings
 from django.conf.urls.static import static
-from api.views import signup, signin, refresh_token, logout_view, admin_signin, FileUploadView
+from api.views import signup, signin, refresh_token, logout_view, admin_signin, generate_dropbox_token
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,5 +29,5 @@ urlpatterns = [
     path("api/admin-signin/", admin_signin),
     path("api/token/refresh/", refresh_token),
     path("api/logout/", logout_view),
-    path("upload/", FileUploadView.as_view(), name="file-upload"),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    path('api/dropbox-token/', generate_dropbox_token),
+]

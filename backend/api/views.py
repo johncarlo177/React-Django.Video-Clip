@@ -8,10 +8,7 @@ from .models import User
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError, AccessToken
 from django.contrib.auth import get_user_model
 from django.conf import settings
-import requests
-from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser
-from .serializers import UploadedFileSerializer
+import dropbox
 
 User = get_user_model()
 
@@ -121,18 +118,19 @@ def logout_view(request):
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def generate_dropbox_token(request):
+    # Initialize Dropbox with refresh token
+    dbx = dropbox.Dropbox(
+        oauth2_refresh_token=settings.DROPBOX_REFRESH_TOKEN,
+        app_key=settings.DROPBOX_APP_KEY,
+        app_secret=settings.DROPBOX_APP_SECRET,
+    )
 
-class FileUploadView(APIView):
-    parser_classes = [MultiPartParser, FormParser]
-    permission_classes = [IsAuthenticated]
+    # Force refresh by making a lightweight call
+    account = dbx.users_get_current_account()
+    short_lived_token = dbx._oauth2_access_token  # internal property holding the active token
 
-    def post(self, request, format=None):
-        print("User:", request.user)
-        print("Data:", request.data)
-        serializer = UploadedFileSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return Response({"message": "File uploaded successfully", "file": serializer.data})
-        print("Errors:", serializer.errors)
-        return Response(serializer.errors, status=400)
+    return JsonResponse({'access_token': short_lived_token})
 
