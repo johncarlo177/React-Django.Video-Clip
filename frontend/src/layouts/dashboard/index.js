@@ -16,6 +16,7 @@ import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import axiosInstance from "libs/axios";
+import VideoThumbnail from "./VideoThumbnail";
 
 function Dashboard() {
   const [videos, setVideos] = useState([]);
