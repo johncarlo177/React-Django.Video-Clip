@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Box, Button, LinearProgress, Typography, Paper, Link } from "@mui/material";
-import { useRef } from "react";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import { useNavigate } from "react-router-dom";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
@@ -13,6 +14,8 @@ function Upload() {
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("");
   const [downloadUrl, setDownloadUrl] = useState("");
+
+  const navigate = useNavigate();
 
   const getDropboxToken = async () => {
     try {
@@ -48,7 +51,7 @@ function Upload() {
         mute: false,
       };
 
-      // Upload
+      // 1️⃣ Upload file to Dropbox
       await axios.post("https://content.dropboxapi.com/2/files/upload", file, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -63,9 +66,7 @@ function Upload() {
         },
       });
 
-      setMessage("✅ Video uploaded successfully!");
-
-      // Get download link
+      // 2️⃣ Get download link
       const linkRes = await axios.post(
         "https://api.dropboxapi.com/2/files/get_temporary_link",
         { path: filePath },
@@ -77,11 +78,21 @@ function Upload() {
         }
       );
 
-      setDownloadUrl(linkRes.data.link);
+      const dropboxLink = linkRes.data.link;
+      setDownloadUrl(dropboxLink);
+      setMessage("Video uploaded successfully!");
+
+      // 3️⃣ Send metadata to your Django backend
+      await axiosInstance.post("/api/save-upload-info/", {
+        file_name: file.name,
+        dropbox_path: filePath,
+        dropbox_link: dropboxLink,
+      });
+
       setFile(null);
     } catch (err) {
       console.error("Upload error:", err.response?.data || err);
-      setMessage("❌ Upload failed");
+      setMessage("Upload failed");
     } finally {
       setUploading(false);
     }
@@ -174,18 +185,35 @@ function Upload() {
         )}
 
         {downloadUrl && (
-          <Box sx={{ mt: 3, fontSize: 10 }}>
+          <Box sx={{ mt: 3, fontSize: 10, textAlign: "left" }}>
             <Typography variant="body1">Download Link:</Typography>
             <Link
               href={downloadUrl}
               target="_blank"
               rel="noopener"
-              sx={{ overflowWrap: "break-word" }}
+              sx={{ overflowWrap: "break-word", color: "blue" }}
             >
               {downloadUrl}
             </Link>
           </Box>
         )}
+      </Box>
+      <Box
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 1,
+          mt: 3,
+          cursor: "pointer",
+          justifyContent: "center",
+          "&:hover": { color: "primary.main" },
+        }}
+        onClick={() => navigate("/dashboard")}
+      >
+        <Typography variant="body1" sx={{ textAlign: "center" }}>
+          Please go to Dashboard and handle your videos
+        </Typography>
+        <ArrowForwardIcon />
       </Box>
     </DashboardLayout>
   );

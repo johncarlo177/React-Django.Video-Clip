@@ -4,11 +4,12 @@ from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
-from .models import User
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError, AccessToken
 from django.contrib.auth import get_user_model
 from django.conf import settings
 import dropbox
+
+from .models import User, DropboxUpload
 
 User = get_user_model()
 
@@ -134,3 +135,16 @@ def generate_dropbox_token(request):
 
     return JsonResponse({'access_token': short_lived_token})
 
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])  # or AllowAny if no login required
+def save_upload_info(request):
+    data = request.data
+    user = request.user
+    DropboxUpload.objects.create(
+        userId=user.id,
+        username=user.username,
+        file_name=data.get("file_name"),
+        dropbox_path=data.get("dropbox_path"),
+        dropbox_link=data.get("dropbox_link"),
+    )
+    return Response({"message": "Upload info saved successfully"}, status=status.HTTP_201_CREATED)

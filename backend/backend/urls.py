@@ -19,7 +19,7 @@ from django.urls import path, include
 from api.views import hello
 from django.conf import settings
 from django.conf.urls.static import static
-from api.views import signup, signin, refresh_token, logout_view, admin_signin, generate_dropbox_token
+from api.views import signup, signin, refresh_token, logout_view, admin_signin, generate_dropbox_token, save_upload_info
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,4 +30,5 @@ urlpatterns = [
     path("api/token/refresh/", refresh_token),
     path("api/logout/", logout_view),
     path('api/dropbox-token/', generate_dropbox_token),
+    path("api/save-upload-info/", save_upload_info, name="save-upload-info"),
 ]
