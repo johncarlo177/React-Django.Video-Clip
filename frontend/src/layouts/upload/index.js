@@ -27,6 +27,22 @@ function Upload() {
     }
   };
 
+  const getDropboxDownloadLink = (url) => {
+    if (!url) return "";
+    // If URL already has ?dl=0 or ?dl=1
+    if (url.includes("?dl=0") || url.includes("?dl=1")) {
+      return url.replace(/\?dl=\d/, "?dl=1");
+    }
+
+    // If no query string exists
+    if (!url.includes("?")) {
+      return url + "?dl=1";
+    }
+
+    // If other query params exist
+    return url + "&dl=1";
+  };
+
   const handleUpload = async () => {
     if (!file) {
       setMessage("Please select a video file first");
@@ -66,9 +82,9 @@ function Upload() {
         },
       });
 
-      // 2️⃣ Get download link
-      const linkRes = await axios.post(
-        "https://api.dropboxapi.com/2/files/get_temporary_link",
+      // 2️⃣ Create permanent shared link
+      const sharedRes = await axios.post(
+        "https://api.dropboxapi.com/2/sharing/create_shared_link_with_settings",
         { path: filePath },
         {
           headers: {
@@ -78,21 +94,49 @@ function Upload() {
         }
       );
 
-      const dropboxLink = linkRes.data.link;
-      setDownloadUrl(dropboxLink);
-      setMessage("Video uploaded successfully!");
+      let sharedLink = sharedRes.data.url;
+      const downloadLink = getDropboxDownloadLink(sharedLink);
 
-      // 3️⃣ Send metadata to your Django backend
+      setDownloadUrl(downloadLink);
+      setMessage("✅ Video uploaded successfully!");
+
+      // 3️⃣ Save info to backend
       await axiosInstance.post("/api/save-upload-info/", {
         file_name: file.name,
         dropbox_path: filePath,
-        dropbox_link: dropboxLink,
+        dropbox_link: downloadLink,
       });
 
       setFile(null);
     } catch (err) {
-      console.error("Upload error:", err.response?.data || err);
-      setMessage("Upload failed");
+      // If link already exists (409 conflict), fetch existing one
+      if (err.response?.status === 409) {
+        try {
+          const token = await getDropboxToken();
+          const filePath = "/Videos/" + file.name;
+          const res = await axios.post(
+            "https://api.dropboxapi.com/2/sharing/list_shared_links",
+            { path: filePath },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          if (res.data.links?.length > 0) {
+            const existingLink = getDropboxDownloadLink(res.data.links[0].url);
+            console.log(existingLink, "existing Link");
+            setDownloadUrl(existingLink);
+            setMessage("Video already shared — using existing link!");
+          }
+        } catch (subErr) {
+          console.error("Error fetching existing link:", subErr);
+        }
+      } else {
+        console.error("Upload error:", err.response?.data || err);
+        setMessage("❌ Upload failed");
+      }
     } finally {
       setUploading(false);
     }

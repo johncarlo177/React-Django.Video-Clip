@@ -8,6 +8,7 @@ from rest_framework_simplejwt.tokens import RefreshToken, TokenError, AccessToke
 from django.contrib.auth import get_user_model
 from django.conf import settings
 import dropbox
+from .serializers import DropboxUploadSerializer
 
 from .models import User, DropboxUpload
 
@@ -148,3 +149,10 @@ def save_upload_info(request):
         dropbox_link=data.get("dropbox_link"),
     )
     return Response({"message": "Upload info saved successfully"}, status=status.HTTP_201_CREATED)
+
+@api_view(['GET'])
+def list_videos(request):
+    videos = DropboxUpload.objects.all().order_by('-uploaded_at')
+    serializer = DropboxUploadSerializer(videos, many=True)
+    return Response(serializer.data)
+
