@@ -11,6 +11,7 @@ import {
   Paper,
   Typography,
 } from "@mui/material";
+import MDButton from "components/MDButton";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -54,11 +55,43 @@ function Dashboard() {
 
   const handleTranscribe = async (videoId) => {
     try {
-      const res = await axiosInstance.post(`/api/transcribe/${videoId}/`);
-      console.log(res.data);
-      console.log("Transcription started! You can check progress later.");
+      // Step 1: Start transcription
+      const startRes = await axiosInstance.post(`/api/transcribe/${videoId}/`);
+      console.log("Transcription started:", startRes.data);
+
+      const jobId = startRes.data.job?.id;
+      if (!jobId) {
+        console.error("No job ID returned!");
+        return;
+      }
+
+      console.log("🟡 Job ID:", jobId);
+
+      // Step 2: Define polling function
+      const pollTranscription = async (attempt = 0) => {
+        try {
+          const statusRes = await axiosInstance.get(`/api/transcribe/status/${jobId}/`);
+          const data = statusRes.data;
+          console.log(`⏳ Attempt ${attempt + 1}: Job state = ${data.state}`);
+
+          if (data.state === "done") {
+            console.log("✅ Transcription complete!");
+            console.log("Transcript:", data.transcript);
+          } else if (data.state === "error" || data.state === "failed") {
+            console.error("❌ Transcription failed:", data);
+          } else {
+            setTimeout(() => pollTranscription(attempt + 1), 10000);
+          }
+        } catch (err) {
+          console.error("Error checking status:", err);
+          alert("Failed to check transcription status.");
+        }
+      };
+
+      // Step 3: Start polling
+      pollTranscription();
     } catch (err) {
-      console.error(err);
+      console.error("Error starting transcription:", err);
       alert("Failed to start transcription.");
     }
   };
@@ -93,13 +126,13 @@ function Dashboard() {
                       </IconButton>
                     </TableCell>
                     <TableCell>
-                      <Button
+                      <MDButton
                         variant="contained"
-                        size="small"
+                        color="dark"
                         onClick={() => handleTranscribe(video.id)}
                       >
                         Handle
-                      </Button>
+                      </MDButton>
                     </TableCell>
                   </TableRow>
                 ))

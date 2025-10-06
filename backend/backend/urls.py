@@ -19,7 +19,7 @@ from django.urls import path, include
 from api.views import hello
 from django.conf import settings
 from django.conf.urls.static import static
-from api.views import signup, signin, refresh_token, logout_view, admin_signin, generate_dropbox_token, save_upload_info, list_videos, transcribe_video
+from api.views import signup, signin, refresh_token, logout_view, admin_signin, generate_dropbox_token, save_upload_info, list_videos, transcribe_video, check_transcription_status
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -33,4 +33,5 @@ urlpatterns = [
     path("api/save-upload-info/", save_upload_info, name="save-upload-info"),
     path("api/video-lists/", list_videos),
     path('api/transcribe/<int:video_id>/', transcribe_video, name='transcribe-video'),
+    path('api/transcribe/status/<str:job_id>/', check_transcription_status)
 ]

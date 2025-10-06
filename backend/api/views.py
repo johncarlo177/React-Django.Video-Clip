@@ -10,6 +10,7 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 import dropbox
 from .serializers import DropboxUploadSerializer
+from openai import OpenAI
 
 from .models import User, DropboxUpload
 
@@ -159,7 +160,7 @@ def list_videos(request):
 
 @api_view(['POST'])
 def transcribe_video(request, video_id):
-    import requests  # make sure requests is imported
+    import requests
     from django.conf import settings
 
     try:
@@ -206,3 +207,53 @@ def transcribe_video(request, video_id):
 
     except DropboxUpload.DoesNotExist:
         return Response({"error": "Video not found"}, status=404)
+    
+@api_view(['GET'])
+def check_transcription_status(request, job_id):
+    import requests
+    from django.conf import settings
+
+    headers = {
+        "Authorization": f"Bearer {settings.HAPPY_SCRIBE_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    res = requests.get(
+        f"https://www.happyscribe.com/api/v1/transcriptions/{job_id}",
+        headers=headers
+    )
+
+    if res.status_code != 200:
+        return Response({"error": res.text}, status=res.status_code)
+
+    job_data = res.json()
+    state = job_data.get("state")
+
+    # If complete, download transcript
+    transcript_text = None
+    if state == "done":
+        txt_res = requests.get(
+            f"https://www.happyscribe.com/api/v1/transcriptions/{job_id}/transcript?format=txt",
+            headers=headers
+        )
+        if txt_res.status_code == 200:
+            transcript_text = txt_res.text
+
+    return Response({
+        "state": state,
+        "transcript": transcript_text
+    })
+
+
+def extract_keywords(transcript_text):
+    client = OpenAI(api_key=settings.OPENAI_API_KEY)
+    prompt = f"""
+    Extract 10-15 key topics and keywords from this transcript:
+    ---
+    {transcript_text[:8000]}  # truncate if long
+    """
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return response.choices[0].message.content

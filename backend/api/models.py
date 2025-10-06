@@ -15,6 +15,8 @@ class DropboxUpload(models.Model):
     dropbox_path = models.CharField(max_length=255)
     dropbox_link = models.URLField()
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    transcription_job_id = models.CharField(max_length=255, null=True, blank=True)
+    transcript_text = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.username} - {self.file_name}"
