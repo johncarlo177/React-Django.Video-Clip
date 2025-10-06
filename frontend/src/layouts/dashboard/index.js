@@ -4,7 +4,6 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-  TableHead,
   TableRow,
   Avatar,
   IconButton,
@@ -12,6 +11,7 @@ import {
   Paper,
   Typography,
 } from "@mui/material";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
@@ -71,7 +71,9 @@ function Dashboard() {
                         src={`https://via.placeholder.com/80x60.png?text=Video`}
                         sx={{ cursor: "pointer" }}
                         onClick={() => handleWatch(video.dropbox_link)}
-                      />
+                      >
+                        <PlayArrowIcon />
+                      </Avatar>
                     </TableCell>
                     <TableCell>{video.file_name}</TableCell>
                     <TableCell>{new Date(video.uploaded_at).toLocaleString()}</TableCell>
