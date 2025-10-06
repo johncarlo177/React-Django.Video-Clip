@@ -16,7 +16,7 @@ import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import axiosInstance from "libs/axios";
-import VideoThumbnail from "./VideoThumbnail";
+// import VideoThumbnail from "./VideoThumbnail";
 
 function Dashboard() {
   const [videos, setVideos] = useState([]);
@@ -52,6 +52,17 @@ function Dashboard() {
     window.open(previewLink, "_blank");
   };
 
+  const handleTranscribe = async (videoId) => {
+    try {
+      const res = await axiosInstance.post(`/api/transcribe/${videoId}/`);
+      console.log(res.data);
+      console.log("Transcription started! You can check progress later.");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to start transcription.");
+    }
+  };
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -68,7 +79,6 @@ function Dashboard() {
                     <TableCell>
                       <Avatar
                         variant="rounded"
-                        src={`https://via.placeholder.com/80x60.png?text=Video`}
                         sx={{ cursor: "pointer" }}
                         onClick={() => handleWatch(video.dropbox_link)}
                       >
@@ -83,7 +93,11 @@ function Dashboard() {
                       </IconButton>
                     </TableCell>
                     <TableCell>
-                      <Button variant="contained" size="small">
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => handleTranscribe(video.id)}
+                      >
                         Handle
                       </Button>
                     </TableCell>

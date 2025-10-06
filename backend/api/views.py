@@ -1,3 +1,4 @@
+import requests
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.http import JsonResponse
@@ -156,3 +157,52 @@ def list_videos(request):
     serializer = DropboxUploadSerializer(videos, many=True)
     return Response(serializer.data)
 
+@api_view(['POST'])
+def transcribe_video(request, video_id):
+    import requests  # make sure requests is imported
+    from django.conf import settings
+
+    try:
+        video = DropboxUpload.objects.get(id=video_id)
+
+        # Use Dropbox preview link
+        video_url = video.dropbox_link
+        if "?dl=1" in video_url:
+            video_url = video_url.replace("?dl=1", "?dl=0")
+        elif not video_url.endswith("?dl=0"):
+            video_url += "?dl=0"
+
+        headers = {
+            "Authorization": f"Bearer {settings.HAPPY_SCRIBE_API_KEY}",
+            "Content-Type": "application/json",
+        }
+
+        data = {
+            "transcription": {
+                "name": f"Transcription for {video.file_name}",
+                "language": "en-GB",  # adjust if needed
+                "tmp_url": video_url,
+                "is_subtitle": False,
+                # Optional: include if your account requires it
+                "organization_id": settings.HAPPY_SCRIBE_ORGANIZATION_ID,
+                # "folder_id": "521",
+                # "tags": ["To do", "video_transcription"],
+            }
+        }
+
+        response = requests.post(
+            "https://www.happyscribe.com/api/v1/transcriptions",
+            headers=headers,
+            json=data
+        )
+
+        if response.status_code in [200, 201]:
+            transcription_job = response.json()
+            video.transcription_job_id = transcription_job["id"]
+            video.save()
+            return Response({"message": "Transcription started", "job": transcription_job})
+        else:
+            return Response({"error": response.text}, status=response.status_code)
+
+    except DropboxUpload.DoesNotExist:
+        return Response({"error": "Video not found"}, status=404)
