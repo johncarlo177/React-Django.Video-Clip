@@ -1,4 +1,4 @@
-import requests, dropbox, os, json, tempfile
+import requests, dropbox, os, json, tempfile, re
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.http import JsonResponse
@@ -301,21 +301,61 @@ def get_video_duration_from_url(url):
 
     return duration
 
+def clean_keywords(raw_text):
+    """
+    Cleans AI-generated keyword text into a consistent, plain list.
+    Removes numbers, markdown symbols, bullets, and normalizes spacing.
+    """
+    if not raw_text:
+        return []
+
+    # Remove markdown, bullets, and numbering
+    text = re.sub(r"[*#\-•]", "", raw_text)      # remove *, #, -, •
+    text = re.sub(r"\d+\.", "", text)            # remove "1.", "2.", etc.
+    text = re.sub(r"\s+", " ", text).strip()     # normalize extra spaces
+
+    # Split by commas or newlines
+    parts = re.split(r"[,\n]+", text)
+
+    # Clean, capitalize, and remove duplicates
+    cleaned = []
+    for p in parts:
+        word = p.strip()
+        if word and word.title() not in cleaned:
+            cleaned.append(word.title())
+
+    return cleaned
+
 @api_view(['POST'])
 def keyword_detection(request, video_id):
+    """
+    Detects relevant keywords from a video's transcript using GPT-4o-mini.
+    Number of keywords is proportional to video length (1 per 5 seconds).
+    Returns cleaned list of keywords.
+    """
     try:
+        # 1️⃣ Get video and ensure it has a transcript
         video = DropboxUpload.objects.get(id=video_id)
         if not video.transcript_text:
             return Response({"error": "No transcript found"}, status=400)
 
-        # 1️⃣ Get video length
+        # 2️⃣ Get video duration and calculate target keyword count
         video_length = get_video_duration_from_url(video.dropbox_link)  # in seconds
-        num_clips = max(1, int(video_length // 5))  # one keyword per 5s clip
-        # 2️⃣ Prompt AI to give keywords proportional to clips
+        num_clips = max(1, int(video_length // 5))  # 1 keyword per 5 seconds
+
+        # 3️⃣ Prompt GPT for keyword extraction
         prompt = f"""
-        Extract {num_clips} important keywords or topics from this text.
-        The text is from a video transcript. Each keyword should roughly correspond 
-        to a 5-second segment of the video, in order.
+        You are an assistant that extracts *visual and conceptual* keywords 
+        suitable for finding stock video clips on sites like Pexels or Pixabay.
+
+        Given the following transcript, extract about {num_clips} relevant 
+        stock-video keywords that describe scenes, actions, emotions, or contexts.
+
+        ⚠️ Rules:
+        - Exclude personal names (like Mr. Wang, Sarah, etc.)
+        - Exclude numbers, times, salaries, and specific details
+        - Keep only professional, visual, and searchable concepts (e.g., "Office", "Teamwork", "Banking", "Interview", "Leadership")
+        - Return a comma-separated list only
         
         Transcript:
         {video.transcript_text}
@@ -324,16 +364,19 @@ def keyword_detection(request, video_id):
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         response = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}]
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.4
         )
 
-        text = response.choices[0].message.content
-        keywords = [kw.strip(" -•,") for kw in text.split("\n") if kw.strip()]
+        # 4️⃣ Extract and clean keywords
+        raw_text = response.choices[0].message.content.strip()
+        keywords = clean_keywords(raw_text)
 
-        # 3️⃣ Save to DB
+        # 5️⃣ Save cleaned keywords to DB
         video.keywords = ", ".join(keywords)
         video.save()
 
+        # 6️⃣ Return response
         return Response({
             "message": f"✅ Keyword detection complete ({len(keywords)} keywords for {num_clips} clips)",
             "keywords": keywords
@@ -342,4 +385,5 @@ def keyword_detection(request, video_id):
     except DropboxUpload.DoesNotExist:
         return Response({"error": "Video not found"}, status=404)
     except Exception as e:
+        print("Keyword detection error:", e)
         return Response({"error": str(e)}, status=500)

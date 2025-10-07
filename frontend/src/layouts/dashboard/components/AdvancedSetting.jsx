@@ -16,15 +16,20 @@ export default function AdvancedSettings({ open, onClose, video }) {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
   const isCancelled = useRef(false);
+
   const [keywords, setKeywords] = useState([]);
+  const [keywordLoading, setKeywordLoading] = useState(false);
+  const [keywordStatus, setKeywordStatus] = useState("");
 
   // ✅ Stop polling and reset when dialog closes
   const handleClose = () => {
     isCancelled.current = true;
     setLoading(false);
     setStatus("");
-    onClose();
     setKeywords([]);
+    setKeywordLoading(false);
+    setKeywordStatus("");
+    onClose();
   };
 
   const handleTranscribe = async () => {
@@ -53,8 +58,8 @@ export default function AdvancedSettings({ open, onClose, video }) {
 
           if (data.state === "automatic_done") {
             setStatus("✅ Transcription complete!");
-            await handleKeywordDetection(video.id);
             setLoading(false);
+            await handleKeywordDetection(video.id);
           } else if (["error", "failed"].includes(data.state)) {
             setStatus("❌ Transcription failed");
             setLoading(false);
@@ -80,16 +85,22 @@ export default function AdvancedSettings({ open, onClose, video }) {
     }
   };
 
-  // Keyword detection step
+  // ✅ Keyword detection step with progress display
   const handleKeywordDetection = async (videoId) => {
     try {
-      setStatus("🔍 Detecting keywords with AI...");
+      setKeywordLoading(true);
+      setKeywordStatus("🔍 Detecting keywords with AI...");
+
       const res = await axiosInstance.post(`/api/keyword-detection/${videoId}/`);
-      setKeywords(res.data.keywords || []);
-      setStatus("✅ Keyword detection complete!");
+      const fetchedKeywords = res.data.keywords || [];
+
+      setKeywords(fetchedKeywords);
+      setKeywordStatus(`✅ Keyword detection complete! (${fetchedKeywords.length} found)`);
     } catch (err) {
       console.error("Keyword detection failed:", err);
-      setStatus("❌ Keyword detection failed");
+      setKeywordStatus("❌ Keyword detection failed");
+    } finally {
+      setKeywordLoading(false);
     }
   };
 
@@ -106,27 +117,47 @@ export default function AdvancedSettings({ open, onClose, video }) {
         <Typography variant="body1" sx={{ mb: 2, fontWeight: "bold" }}>
           {video?.file_name}
         </Typography>
-        <Typography>
-          1. Transcription
+
+        {/* 1. Transcription Section */}
+        <Typography sx={{ fontWeight: "bold" }}>1. Transcription</Typography>
+        <Box sx={{ mb: 3 }}>
           {loading && (
-            <Box sx={{ width: "100%", mb: 2 }}>
-              <LinearProgress sx={{ width: "100%", overflowX: "hidden" }} />
+            <>
+              <LinearProgress sx={{ width: "100%", mt: 1, overflowX: "hidden" }} />
               <Typography variant="body2" sx={{ mt: 1 }}>
                 {status}
               </Typography>
-            </Box>
+            </>
           )}
           {!loading && status && <Typography variant="body2">{status}</Typography>}
-        </Typography>
-        <Typography>2. Keyword Detection</Typography>
-        <Typography>3. Clip Video</Typography>
+        </Box>
+
+        {/* 2. Keyword Detection Section */}
+        <Typography sx={{ fontWeight: "bold" }}>2. Keyword Detection</Typography>
+        <Box sx={{ mb: 3 }}>
+          {keywordLoading && (
+            <>
+              <LinearProgress sx={{ width: "100%", mt: 1, overflowX: "hidden" }} />
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                {keywordStatus}
+              </Typography>
+            </>
+          )}
+          {!keywordLoading && keywordStatus && (
+            <Typography variant="body2">{keywordStatus}</Typography>
+          )}
+        </Box>
+
+        {/* 3. Clip Video Section */}
+        <Typography sx={{ fontWeight: "bold" }}>3. Clip Video</Typography>
       </DialogContent>
+
       <DialogActions>
         <MDButton onClick={handleClose} color="secondary">
           Close
         </MDButton>
-        <MDButton onClick={handleTranscribe} color="info" disabled={loading}>
-          {loading ? "Processing..." : "Start"}
+        <MDButton onClick={handleTranscribe} color="info" disabled={loading || keywordLoading}>
+          {loading || keywordLoading ? "Processing..." : "Start"}
         </MDButton>
       </DialogActions>
     </Dialog>
