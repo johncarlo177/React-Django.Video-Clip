@@ -7,11 +7,11 @@ from rest_framework import status
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError, AccessToken
 from django.contrib.auth import get_user_model
-from django.conf import settings
-import dropbox
-from .serializers import DropboxUploadSerializer
 from openai import OpenAI
-
+import dropbox
+import json
+from django.conf import settings
+from .serializers import DropboxUploadSerializer
 from .models import User, DropboxUpload
 
 User = get_user_model()
@@ -158,6 +158,41 @@ def list_videos(request):
     serializer = DropboxUploadSerializer(videos, many=True)
     return Response(serializer.data)
 
+import dropbox
+from django.conf import settings
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .models import DropboxUpload
+
+@api_view(['DELETE'])
+def delete_video(request, video_id):
+    try:
+        video = DropboxUpload.objects.get(id=video_id)
+
+        # Initialize Dropbox client
+        dbx = dropbox.Dropbox(
+            oauth2_refresh_token=settings.DROPBOX_REFRESH_TOKEN,
+            app_key=settings.DROPBOX_APP_KEY,
+            app_secret=settings.DROPBOX_APP_SECRET
+        )
+
+        # Delete file from Dropbox
+        if video.dropbox_path:
+            try:
+                dbx.files_delete_v2(video.dropbox_path)
+            except dropbox.exceptions.ApiError as e:
+                # File may not exist, log error but continue
+                print("Dropbox delete error:", e)
+
+        # Delete from database
+        video.delete()
+
+        return Response({"message": "Video deleted successfully."})
+
+    except DropboxUpload.DoesNotExist:
+        return Response({"error": "Video not found."}, status=404)
+ 
+
 @api_view(['POST'])
 def transcribe_video(request, video_id):
     import requests
@@ -207,17 +242,15 @@ def transcribe_video(request, video_id):
 
     except DropboxUpload.DoesNotExist:
         return Response({"error": "Video not found"}, status=404)
-    
+
 @api_view(['GET'])
 def check_transcription_status(request, job_id):
-    import requests
-    from django.conf import settings
-
     headers = {
         "Authorization": f"Bearer {settings.HAPPY_SCRIBE_API_KEY}",
         "Content-Type": "application/json",
     }
 
+    # Get transcription job info
     res = requests.get(
         f"https://www.happyscribe.com/api/v1/transcriptions/{job_id}",
         headers=headers
@@ -229,20 +262,26 @@ def check_transcription_status(request, job_id):
     job_data = res.json()
     state = job_data.get("state")
 
-    # If complete, download transcript
     transcript_text = None
-    if state == "done":
-        txt_res = requests.get(
-            f"https://www.happyscribe.com/api/v1/transcriptions/{job_id}/transcript?format=txt",
-            headers=headers
-        )
+    download_url = job_data.get("_links", {}).get("self", {}).get("downloadUrl")
+
+    if state in ["done", "automatic_done"] and download_url:
+        # Download transcript file
+        txt_res = requests.get(download_url)
         if txt_res.status_code == 200:
-            transcript_text = txt_res.text
+            transcript_json = json.loads(txt_res.text)
+            words = []
+            for speaker_block in transcript_json:
+                for word_obj in speaker_block.get("words", []):
+                    words.append(word_obj["text"])
+            # Join all words into a single string
+            transcript_text = "".join(words).replace(" ,", ",").replace(" .", ".").strip()
 
     return Response({
         "state": state,
         "transcript": transcript_text
     })
+
 
 
 def extract_keywords(transcript_text):
