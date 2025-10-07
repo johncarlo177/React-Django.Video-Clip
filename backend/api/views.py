@@ -127,9 +127,9 @@ def logout_view(request):
 def generate_dropbox_token(request):
     # Initialize Dropbox with refresh token
     dbx = dropbox.Dropbox(
-        oauth2_refresh_token=settings.DROPBOX_REFRESH_TOKEN,
-        app_key=settings.DROPBOX_APP_KEY,
-        app_secret=settings.DROPBOX_APP_SECRET,
+        oauth2_refresh_token=os.getenv("DROPBOX_REFRESH_TOKEN"),
+        app_key=os.getenv("DROPBOX_APP_KEY"),
+        app_secret=os.getenv("DROPBOX_APP_SECRET"),
     )
 
     # Force refresh by making a lightweight call
@@ -165,9 +165,9 @@ def delete_video(request, video_id):
 
         # Initialize Dropbox client
         dbx = dropbox.Dropbox(
-            oauth2_refresh_token=settings.DROPBOX_REFRESH_TOKEN,
-            app_key=settings.DROPBOX_APP_KEY,
-            app_secret=settings.DROPBOX_APP_SECRET
+            oauth2_refresh_token=os.getenv("DROPBOX_REFRESH_TOKEN"),
+            app_key=os.getenv("DROPBOX_APP_KEY"),
+            app_secret=os.getenv("DROPBOX_APP_SECRET")
         )
 
         # Delete file from Dropbox
@@ -202,7 +202,7 @@ def transcribe_video(request, video_id):
             video_url += "?dl=0"
 
         headers = {
-            "Authorization": f"Bearer {settings.HAPPY_SCRIBE_API_KEY}",
+            "Authorization": f"Bearer {os.getenv("HAPPY_SCRIBE_API_KEY")}",
             "Content-Type": "application/json",
         }
 
@@ -213,7 +213,7 @@ def transcribe_video(request, video_id):
                 "tmp_url": video_url,
                 "is_subtitle": False,
                 # Optional: include if your account requires it
-                "organization_id": settings.HAPPY_SCRIBE_ORGANIZATION_ID,
+                "organization_id": os.getenv("HAPPY_SCRIBE_ORGANIZATION_ID"),
                 # "folder_id": "521",
                 # "tags": ["To do", "video_transcription"],
             }
@@ -239,7 +239,7 @@ def transcribe_video(request, video_id):
 @api_view(['GET'])
 def check_transcription_status(request, job_id):
     headers = {
-        "Authorization": f"Bearer {settings.HAPPY_SCRIBE_API_KEY}",
+        "Authorization": f"Bearer {os.getenv("HAPPY_SCRIBE_API_KEY")}",
         "Content-Type": "application/json",
     }
 
@@ -403,7 +403,8 @@ def fetch_stock_videos(request):
             "query": keyword,
             "per_page": per_keyword,
             "orientation": "landscape",
-            "size": "medium"
+            "size": "medium",
+            "orientation": "landscape"
         }
 
         try:
