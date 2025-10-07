@@ -100,7 +100,7 @@ export default function AdvancedSettings({ open, onClose, video }) {
 
       setKeywords(fetchedKeywords);
       setKeywordStatus(`✅ Keyword detection complete! (${fetchedKeywords.length} found)`);
-      handleFetchStockClips(fetchedKeywords);
+      handleFetchStockClips(fetchedKeywords, videoId);
     } catch (err) {
       console.error("Keyword detection failed:", err);
       setKeywordStatus("❌ Keyword detection failed");
@@ -110,14 +110,14 @@ export default function AdvancedSettings({ open, onClose, video }) {
   };
 
   // Get stock clips
-  const handleFetchStockClips = async (keywords) => {
+  const handleFetchStockClips = async (keywords, videoId) => {
     if (!keywords || keywords.length === 0) return;
 
     try {
       setClipsLoading(true);
       setClipsStatus("🎬 Fetching stock clips from Pexels...");
 
-      const res = await axiosInstance.post(`/api/fetch-stock-clips/`, { keywords });
+      const res = await axiosInstance.post(`/api/fetch-stock-clips/`, { keywords, videoId });
       const fetchedClips = res.data.clips || [];
 
       setClips(fetchedClips);

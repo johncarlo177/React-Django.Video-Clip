@@ -188,9 +188,6 @@ def delete_video(request, video_id):
  
 @api_view(['POST'])
 def transcribe_video(request, video_id):
-    import requests
-    from django.conf import settings
-
     try:
         video = DropboxUpload.objects.get(id=video_id)
 
@@ -391,10 +388,11 @@ def keyword_detection(request, video_id):
 @api_view(['POST'])
 def fetch_stock_videos(request):
     keywords = request.data.get("keywords", [])
+    upload_id = request.data.get("videoId")
     if not keywords:
         return Response({"clips": []})
 
-    per_keyword = 1  # number of clips per keyword
+    per_keyword = 2  # number of clips per keyword
     headers = {"Authorization": os.getenv("PEXELS_API_KEY")}
     all_videos = []
 
@@ -404,7 +402,6 @@ def fetch_stock_videos(request):
             "per_page": per_keyword,
             "orientation": "landscape",
             "size": "medium",
-            "orientation": "landscape"
         }
 
         try:
@@ -428,5 +425,11 @@ def fetch_stock_videos(request):
                     })
         except Exception as e:
             print(f"Error fetching videos for '{keyword}':", e)
+    try:
+        upload = DropboxUpload.objects.get(id=upload_id)
+        upload.stock_clips = json.dumps(all_videos)  # save as JSON string
+        upload.save()
+    except DropboxUpload.DoesNotExist:
+        return Response({"error": "Upload not found"}, status=404)
 
     return Response({"clips": all_videos})
