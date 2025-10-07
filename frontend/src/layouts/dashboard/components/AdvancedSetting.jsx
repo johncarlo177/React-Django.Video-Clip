@@ -21,6 +21,10 @@ export default function AdvancedSettings({ open, onClose, video }) {
   const [keywordLoading, setKeywordLoading] = useState(false);
   const [keywordStatus, setKeywordStatus] = useState("");
 
+  const [clips, setClips] = useState([]);
+  const [clipsLoading, setClipsLoading] = useState(false);
+  const [clipsStatus, setClipsStatus] = useState("");
+
   // ✅ Stop polling and reset when dialog closes
   const handleClose = () => {
     isCancelled.current = true;
@@ -85,7 +89,7 @@ export default function AdvancedSettings({ open, onClose, video }) {
     }
   };
 
-  // ✅ Keyword detection step with progress display
+  // Keyword detection step with progress display
   const handleKeywordDetection = async (videoId) => {
     try {
       setKeywordLoading(true);
@@ -96,11 +100,33 @@ export default function AdvancedSettings({ open, onClose, video }) {
 
       setKeywords(fetchedKeywords);
       setKeywordStatus(`✅ Keyword detection complete! (${fetchedKeywords.length} found)`);
+      handleFetchStockClips(fetchedKeywords);
     } catch (err) {
       console.error("Keyword detection failed:", err);
       setKeywordStatus("❌ Keyword detection failed");
     } finally {
       setKeywordLoading(false);
+    }
+  };
+
+  // Get stock clips
+  const handleFetchStockClips = async (keywords) => {
+    if (!keywords || keywords.length === 0) return;
+
+    try {
+      setClipsLoading(true);
+      setClipsStatus("🎬 Fetching stock clips from Pexels...");
+
+      const res = await axiosInstance.post(`/api/fetch-stock-clips/`, { keywords });
+      const fetchedClips = res.data.clips || [];
+
+      setClips(fetchedClips);
+      setClipsStatus(`✅ Stock clips fetched! (${fetchedClips.length})`);
+    } catch (err) {
+      console.error("Failed to fetch stock clips:", err);
+      setClipsStatus("❌ Failed to fetch stock clips");
+    } finally {
+      setClipsLoading(false);
     }
   };
 
@@ -149,7 +175,30 @@ export default function AdvancedSettings({ open, onClose, video }) {
         </Box>
 
         {/* 3. Clip Video Section */}
-        <Typography sx={{ fontWeight: "bold" }}>3. Clip Video</Typography>
+        <Typography sx={{ fontWeight: "bold" }}>3. Get Stock Clips</Typography>
+        {(clipsLoading || clipsStatus || clips.length > 0) && (
+          <Box sx={{ mb: 3 }}>
+            {clipsLoading && (
+              <>
+                <LinearProgress sx={{ width: "100%", mt: 1, overflowX: "hidden" }} />
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  {clipsStatus || ""}
+                </Typography>
+              </>
+            )}
+            {!clipsLoading && clipsStatus && <Typography variant="body2">{clipsStatus}</Typography>}
+            {!clipsLoading && clips.length > 0 && (
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mt: 1 }}>
+                {clips.map((clip) => (
+                  <Box key={clip.id} sx={{ width: 200 }}>
+                    <video width="100%" src={clip.video_files[0]} controls />
+                    <Typography variant="caption">{clip.keyword}</Typography>
+                  </Box>
+                ))}
+              </Box>
+            )}
+          </Box>
+        )}
       </DialogContent>
 
       <DialogActions>

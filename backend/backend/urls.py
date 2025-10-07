@@ -19,7 +19,7 @@ from django.urls import path, include
 from api.views import hello
 from django.conf import settings
 from django.conf.urls.static import static
-from api.views import signup, signin, refresh_token, logout_view, admin_signin, generate_dropbox_token, save_upload_info, list_videos, delete_video, transcribe_video, check_transcription_status, keyword_detection
+from api.views import signup, signin, refresh_token, logout_view, admin_signin, generate_dropbox_token, save_upload_info, list_videos, delete_video, transcribe_video, check_transcription_status, keyword_detection, fetch_stock_videos
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -35,5 +35,6 @@ urlpatterns = [
     path('api/video-delete/<int:video_id>/', delete_video),
     path('api/transcribe/<int:video_id>/', transcribe_video, name='transcribe-video'),
     path('api/transcribe/status/<str:job_id>/', check_transcription_status),
-    path('api/keyword-detection/<int:video_id>/', keyword_detection)
+    path('api/keyword-detection/<int:video_id>/', keyword_detection),
+    path('api/fetch-stock-clips/', fetch_stock_videos)
 ]

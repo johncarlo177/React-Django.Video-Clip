@@ -387,3 +387,45 @@ def keyword_detection(request, video_id):
     except Exception as e:
         print("Keyword detection error:", e)
         return Response({"error": str(e)}, status=500)
+    
+@api_view(['POST'])
+def fetch_stock_videos(request):
+    keywords = request.data.get("keywords", [])
+    if not keywords:
+        return Response({"clips": []})
+
+    per_keyword = 1  # number of clips per keyword
+    headers = {"Authorization": os.getenv("PEXELS_API_KEY")}
+    all_videos = []
+
+    for keyword in keywords:
+        params = {
+            "query": keyword,
+            "per_page": per_keyword,
+            "orientation": "landscape",
+            "size": "medium"
+        }
+
+        try:
+            pexel_url = "https://api.pexels.com/videos/search"
+            res = requests.get(pexel_url, headers=headers, params=params)
+            res.raise_for_status()
+            data = res.json()
+
+            for vid in data.get("videos", []):
+                if vid.get("duration", 0) >= 5:  # only videos >= 5 seconds
+                    all_videos.append({
+                        "keyword": keyword,
+                        "id": vid["id"],
+                        "url": vid["url"],
+                        "duration": vid["duration"],
+                        "thumbnail": vid["image"],
+                        "video_files": [
+                            f["link"] for f in vid.get("video_files", [])
+                            if f["quality"] in ["hd", "sd"]
+                        ]
+                    })
+        except Exception as e:
+            print(f"Error fetching videos for '{keyword}':", e)
+
+    return Response({"clips": all_videos})
