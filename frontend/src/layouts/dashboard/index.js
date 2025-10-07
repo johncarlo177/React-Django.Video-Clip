@@ -10,22 +10,22 @@ import {
   Paper,
   Typography,
 } from "@mui/material";
-import MDButton from "components/MDButton";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import axiosInstance from "libs/axios";
-import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SettingsIcon from "@mui/icons-material/Settings";
-
-// import VideoThumbnail from "./VideoThumbnail";
+import DeleteVideo from "./components/DeleteVideo";
+import AdvancedSettings from "./components/AdvancedSetting";
 
 function Dashboard() {
   const [videos, setVideos] = useState([]);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [videoToDelete, setVideoToDelete] = useState(null);
+  const [openSettingsModal, setOpenSettingsModal] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState(null);
 
   // Fetch video list
   useEffect(() => {
@@ -58,48 +58,6 @@ function Dashboard() {
     window.open(previewLink, "_blank");
   };
 
-  const handleTranscribe = async (videoId) => {
-    try {
-      // Step 1: Start transcription
-      const startRes = await axiosInstance.post(`/api/transcribe/${videoId}/`);
-      console.log("Transcription started:", startRes.data);
-
-      const jobId = startRes.data.job?.id;
-      if (!jobId) {
-        console.error("No job ID returned!");
-        return;
-      }
-
-      console.log("🟡 Job ID:", jobId);
-
-      // Step 2: Define polling function
-      const pollTranscription = async (attempt = 0) => {
-        try {
-          const statusRes = await axiosInstance.get(`/api/transcribe/status/${jobId}/`);
-          const data = statusRes.data;
-          console.log(`⏳ Attempt ${attempt + 1}: Job state = ${data.state}`);
-
-          if (data.state === "automatic_done") {
-            console.log("Transcript:", data.transcript);
-          } else if (data.state === "error" || data.state === "failed") {
-            console.error("Transcription failed:", data);
-          } else {
-            setTimeout(() => pollTranscription(attempt + 1), 10000);
-          }
-        } catch (err) {
-          console.error("Error checking status:", err);
-          alert("Failed to check transcription status.");
-        }
-      };
-
-      // Step 3: Start polling
-      pollTranscription();
-    } catch (err) {
-      console.error("Error starting transcription:", err);
-      alert("Failed to start transcription.");
-    }
-  };
-
   const handleOpenDeleteModal = (videoId) => {
     setVideoToDelete(videoId);
     setOpenDeleteModal(true);
@@ -110,16 +68,14 @@ function Dashboard() {
     setOpenDeleteModal(false);
   };
 
-  const handleDeleteVideo = async (videoId) => {
-    try {
-      const res = await axiosInstance.delete(`/api/video-delete/${videoId}/`);
-      console.log(res.data);
-      alert("Video deleted successfully!");
-      window.location.reload();
-    } catch (err) {
-      console.error("Failed to delete video:", err.response || err);
-      alert("Failed to delete video.");
-    }
+  const handleOpenSettingsModal = (video) => {
+    setSelectedVideo(video);
+    setOpenSettingsModal(true);
+  };
+
+  const handleCloseSettingsModal = () => {
+    setSelectedVideo(null);
+    setOpenSettingsModal(false);
   };
 
   return (
@@ -157,7 +113,7 @@ function Dashboard() {
                       </IconButton>
                     </TableCell>
                     <TableCell>
-                      <IconButton color="dark" onClick={() => handleTranscribe(video.id)}>
+                      <IconButton color="dark" onClick={() => handleOpenSettingsModal(video)}>
                         <SettingsIcon />
                       </IconButton>
                     </TableCell>
@@ -174,26 +130,16 @@ function Dashboard() {
           </Table>
         </TableContainer>
       </Paper>
-      <Dialog open={openDeleteModal} onClose={handleCloseDeleteModal}>
-        <DialogTitle>Confirm Delete</DialogTitle>
-        <DialogContent>
-          Are you sure you want to delete this video? This action cannot be undone.
-        </DialogContent>
-        <DialogActions>
-          <MDButton onClick={handleCloseDeleteModal} color="secondary">
-            Cancel
-          </MDButton>
-          <MDButton
-            onClick={async () => {
-              await handleDeleteVideo(videoToDelete);
-              handleCloseDeleteModal();
-            }}
-            color="error"
-          >
-            Delete
-          </MDButton>
-        </DialogActions>
-      </Dialog>
+      <DeleteVideo
+        open={openDeleteModal}
+        onClose={handleCloseDeleteModal}
+        videoId={videoToDelete}
+      />
+      <AdvancedSettings
+        open={openSettingsModal}
+        onClose={handleCloseSettingsModal}
+        video={selectedVideo}
+      />
     </DashboardLayout>
   );
 }

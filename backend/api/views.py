@@ -277,6 +277,11 @@ def check_transcription_status(request, job_id):
             # Join all words into a single string
             transcript_text = "".join(words).replace(" ,", ",").replace(" .", ".").strip()
 
+            video = DropboxUpload.objects.filter(transcription_job_id=job_id).first()
+            if video:
+                video.transcript_text = transcript_text
+                video.save(update_fields=["transcript_text"])
+                print(f"✅ Transcript saved for video: {video.file_name}")
     return Response({
         "state": state,
         "transcript": transcript_text
