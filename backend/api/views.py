@@ -1,4 +1,4 @@
-import requests
+import requests, dropbox, os, json, tempfile
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.http import JsonResponse
@@ -8,9 +8,8 @@ from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError, AccessToken
 from django.contrib.auth import get_user_model
 from openai import OpenAI
-import dropbox
-import json
 from django.conf import settings
+from moviepy.video.io.VideoFileClip import VideoFileClip
 from .serializers import DropboxUploadSerializer
 from .models import User, DropboxUpload
 
@@ -35,7 +34,6 @@ def signup(request):
 
     user = User.objects.create_user(username=name, email=email, password=password)
     return Response({"message": "User created successfully"}, status=status.HTTP_201_CREATED)
-
 
 # Signin
 @api_view(["POST"])
@@ -104,6 +102,7 @@ def refresh_token(request):
     except TokenError as e:
         return Response({"error": "Invalid or expired refresh token"}, status=status.HTTP_401_UNAUTHORIZED)
 
+# Logout
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def logout_view(request):
@@ -122,6 +121,7 @@ def logout_view(request):
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
+# Get short_lived_token
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def generate_dropbox_token(request):
@@ -158,12 +158,6 @@ def list_videos(request):
     serializer = DropboxUploadSerializer(videos, many=True)
     return Response(serializer.data)
 
-import dropbox
-from django.conf import settings
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from .models import DropboxUpload
-
 @api_view(['DELETE'])
 def delete_video(request, video_id):
     try:
@@ -192,7 +186,6 @@ def delete_video(request, video_id):
     except DropboxUpload.DoesNotExist:
         return Response({"error": "Video not found."}, status=404)
  
-
 @api_view(['POST'])
 def transcribe_video(request, video_id):
     import requests
@@ -287,17 +280,66 @@ def check_transcription_status(request, job_id):
         "transcript": transcript_text
     })
 
+def get_video_duration_from_url(url):
+    # Download file and follow redirects
+    response = requests.get(url, allow_redirects=True)
+    content_type = response.headers.get("Content-Type", "")
 
+    if "text/html" in content_type:
+        raise Exception(f"Dropbox did not return video data. Content-Type={content_type}")
 
-def extract_keywords(transcript_text):
-    client = OpenAI(api_key=settings.OPENAI_API_KEY)
-    prompt = f"""
-    Extract 10-15 key topics and keywords from this transcript:
-    ---
-    {transcript_text[:8000]}  # truncate if long
-    """
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[{"role": "user", "content": prompt}]
-    )
-    return response.choices[0].message.content
+    # Save to temporary file
+    tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+    tmp_file.write(response.content)
+    tmp_file.flush()
+    tmp_file.close()
+
+    # Load video to get duration
+    clip = VideoFileClip(tmp_file.name)
+    duration = clip.duration
+    clip.close()
+
+    return duration
+
+@api_view(['POST'])
+def keyword_detection(request, video_id):
+    try:
+        video = DropboxUpload.objects.get(id=video_id)
+        if not video.transcript_text:
+            return Response({"error": "No transcript found"}, status=400)
+
+        # 1️⃣ Get video length
+        video_length = get_video_duration_from_url(video.dropbox_link)  # in seconds
+        num_clips = max(1, int(video_length // 5))  # one keyword per 5s clip
+        # 2️⃣ Prompt AI to give keywords proportional to clips
+        prompt = f"""
+        Extract {num_clips} important keywords or topics from this text.
+        The text is from a video transcript. Each keyword should roughly correspond 
+        to a 5-second segment of the video, in order.
+        
+        Transcript:
+        {video.transcript_text}
+        """
+
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}]
+        )
+
+        text = response.choices[0].message.content
+        keywords = [kw.strip(" -•,") for kw in text.split("\n") if kw.strip()]
+
+        # 3️⃣ Save to DB
+        video.keywords = ", ".join(keywords)
+        video.save()
+
+        return Response({
+            "message": f"✅ Keyword detection complete ({len(keywords)} keywords for {num_clips} clips)",
+            "keywords": keywords
+        })
+
+    except DropboxUpload.DoesNotExist:
+        return Response({"error": "Video not found"}, status=404)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)

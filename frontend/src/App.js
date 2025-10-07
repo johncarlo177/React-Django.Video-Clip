@@ -21,7 +21,7 @@ function PrivateRoute({ children }) {
 PrivateRoute.propTypes = { children: PropTypes.node.isRequired };
 
 function PublicRoute({ children }) {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("access_token");
   const adminToken = localStorage.getItem("admin-token");
 
   if (token) return <Navigate to="/dashboard" replace />;
