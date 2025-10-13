@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import {
   Dialog,
@@ -8,6 +8,10 @@ import {
   Typography,
   LinearProgress,
   Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import MDButton from "components/MDButton";
 import axiosInstance from "libs/axios";
@@ -20,10 +24,12 @@ export default function AdvancedSettings({ open, onClose, video }) {
   const [keywords, setKeywords] = useState([]);
   const [keywordLoading, setKeywordLoading] = useState(false);
   const [keywordStatus, setKeywordStatus] = useState("");
-
   const [clips, setClips] = useState([]);
   const [clipsLoading, setClipsLoading] = useState(false);
   const [clipsStatus, setClipsStatus] = useState("");
+  const [processComplete, setProcessComplete] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState("");
+  const [ratioError, setRatioError] = useState(false);
 
   // ✅ Stop polling and reset when dialog closes
   const handleClose = () => {
@@ -36,8 +42,49 @@ export default function AdvancedSettings({ open, onClose, video }) {
     onClose();
   };
 
+  useEffect(() => {
+    const fetchExistingClips = async () => {
+      if (!video) return;
+
+      try {
+        const res = await axiosInstance.get(`/api/clip-lists/`, {
+          params: { video_id: video.id },
+        });
+        const fetchedClips = res.data.clips || [];
+
+        if (fetchedClips.length > 0) {
+          setClips(fetchedClips);
+          setProcessComplete(true);
+          setClipsStatus(`✅ Loaded existing stock clips (${fetchedClips.length})`);
+        } else {
+          setClips([]);
+          setClipsStatus("");
+          setProcessComplete(false);
+        }
+      } catch (err) {
+        console.error("Failed to fetch existing clips:", err);
+        setClips([]);
+        setClipsStatus("❌ Failed to load existing clips");
+      }
+    };
+
+    if (open) {
+      fetchExistingClips();
+    } else {
+      // Reset state when modal closes
+      setClips([]);
+      setClipsStatus("");
+      setProcessComplete(false);
+    }
+  }, [open, video]);
+
   const handleTranscribe = async () => {
     if (!video) return;
+
+    if (!aspectRatio) {
+      setRatioError(true);
+      return;
+    }
 
     try {
       isCancelled.current = false;
@@ -99,7 +146,7 @@ export default function AdvancedSettings({ open, onClose, video }) {
       const fetchedKeywords = res.data.keywords || [];
 
       setKeywords(fetchedKeywords);
-      setKeywordStatus(`✅ Keyword detection complete! (${fetchedKeywords.length} found)`);
+      setKeywordStatus(`✅ Keyword detection complete!`);
       handleFetchStockClips(fetchedKeywords, videoId);
     } catch (err) {
       console.error("Keyword detection failed:", err);
@@ -117,11 +164,16 @@ export default function AdvancedSettings({ open, onClose, video }) {
       setClipsLoading(true);
       setClipsStatus("🎬 Fetching stock clips from Pexels...");
 
-      const res = await axiosInstance.post(`/api/fetch-stock-clips/`, { keywords, videoId });
+      const res = await axiosInstance.post(`/api/fetch-stock-clips/`, {
+        keywords,
+        videoId,
+        aspect_ratio: aspectRatio,
+      });
       const fetchedClips = res.data.clips || [];
 
       setClips(fetchedClips);
       setClipsStatus(`✅ Stock clips fetched! (${fetchedClips.length})`);
+      setProcessComplete(true); // All done — enable Save button
     } catch (err) {
       console.error("Failed to fetch stock clips:", err);
       setClipsStatus("❌ Failed to fetch stock clips");
@@ -140,9 +192,41 @@ export default function AdvancedSettings({ open, onClose, video }) {
     >
       <DialogTitle>Advanced Settings</DialogTitle>
       <DialogContent sx={{ overflowX: "hidden" }}>
-        <Typography variant="body1" sx={{ mb: 2, fontWeight: "bold" }}>
+        <Typography variant="h2" sx={{ mb: 2, fontWeight: "bold" }}>
+          Get Your Video Stock Clips
+        </Typography>
+        <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold" }}>
           {video?.file_name}
         </Typography>
+
+        {/* Aspect Ratio */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mt: 5, mb: 2 }}>
+          <Typography sx={{ fontWeight: "bold" }}>Select Aspect Ratio</Typography>
+          <FormControl>
+            <InputLabel>Aspect Ratio</InputLabel>
+            <Select
+              value={aspectRatio}
+              label="Aspect Ratio"
+              onChange={(e) => {
+                setAspectRatio(e.target.value);
+                setRatioError(false);
+              }}
+              sx={{ width: "200px", height: "40px" }}
+            >
+              <MenuItem value="default">Default</MenuItem>
+              <MenuItem value="16:9">16:9</MenuItem>
+              <MenuItem value="9:16">9:16 </MenuItem>
+              <MenuItem value="4:3">4:3</MenuItem>
+              <MenuItem value="3:4">3:4</MenuItem>
+              <MenuItem value="1:1">1:1</MenuItem>
+            </Select>
+          </FormControl>
+          {ratioError && (
+            <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+              Please select an aspect ratio before starting.
+            </Typography>
+          )}
+        </Box>
 
         {/* 1. Transcription Section */}
         <Typography sx={{ fontWeight: "bold" }}>1. Transcription</Typography>
@@ -205,9 +289,20 @@ export default function AdvancedSettings({ open, onClose, video }) {
         <MDButton onClick={handleClose} color="secondary">
           Close
         </MDButton>
-        <MDButton onClick={handleTranscribe} color="info" disabled={loading || keywordLoading}>
-          {loading || keywordLoading ? "Processing..." : "Start"}
-        </MDButton>
+        {processComplete ? (
+          <>
+            <MDButton onClick={handleTranscribe} color="info" disabled={loading || keywordLoading}>
+              {loading || keywordLoading ? "Processing..." : "Restart"}
+            </MDButton>
+            <MDButton color="success" onClick={() => console.log("Save clicked!")}>
+              Save
+            </MDButton>
+          </>
+        ) : (
+          <MDButton onClick={handleTranscribe} color="info" disabled={loading || keywordLoading}>
+            {loading || keywordLoading ? "Processing..." : "Start"}
+          </MDButton>
+        )}
       </DialogActions>
     </Dialog>
   );

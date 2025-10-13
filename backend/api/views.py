@@ -389,10 +389,23 @@ def keyword_detection(request, video_id):
 def fetch_stock_videos(request):
     keywords = request.data.get("keywords", [])
     upload_id = request.data.get("videoId")
+    aspect_ratio = request.data.get("aspect_ratio", "default")
+
     if not keywords:
         return Response({"clips": []})
 
-    per_keyword = 2  # number of clips per keyword
+    # Map aspect ratio → Pexels orientation
+    orientation_map = {
+        "16:9": "landscape",
+        "9:16": "portrait",
+        "1:1": "square",
+        "4:3": "landscape",
+        "3:4": "portrait",
+        "default": "landscape",
+    }
+    orientation = orientation_map.get(aspect_ratio, "landscape")
+
+    per_keyword = 1
     headers = {"Authorization": os.getenv("PEXELS_API_KEY")}
     all_videos = []
 
@@ -400,7 +413,7 @@ def fetch_stock_videos(request):
         params = {
             "query": keyword,
             "per_page": per_keyword,
-            "orientation": "landscape",
+            "orientation": orientation,
             "size": "medium",
         }
 
@@ -433,3 +446,23 @@ def fetch_stock_videos(request):
         return Response({"error": "Upload not found"}, status=404)
 
     return Response({"clips": all_videos})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_clip_lists(request):
+    """
+    Returns the stock clips for a given video_id
+    """
+    video_id = request.query_params.get("video_id")
+    if not video_id:
+        return Response({"clips": []})
+
+    try:
+        upload = DropboxUpload.objects.get(id=video_id)
+        clips = json.loads(upload.stock_clips) if upload.stock_clips else []
+        return Response({"clips": clips})
+    except DropboxUpload.DoesNotExist:
+        return Response({"clips": []}, status=404)
+    except Exception as e:
+        print(f"Error fetching clips for video {video_id}: {e}")
+        return Response({"clips": []}, status=500)
