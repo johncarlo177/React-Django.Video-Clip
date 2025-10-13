@@ -228,38 +228,7 @@ function Upload() {
             {message}
           </Typography>
         )}
-
-        {/* {downloadUrl && (
-          <Box sx={{ mt: 3, fontSize: 10, textAlign: "left" }}>
-            <Typography variant="body1">Download Link:</Typography>
-            <Link
-              href={downloadUrl}
-              target="_blank"
-              rel="noopener"
-              sx={{ overflowWrap: "break-word", color: "blue" }}
-            >
-              {downloadUrl}
-            </Link>
-          </Box>
-        )} */}
       </Box>
-      {/* <Box
-        sx={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 1,
-          mt: 3,
-          cursor: "pointer",
-          justifyContent: "center",
-          "&:hover": { color: "primary.main" },
-        }}
-        onClick={() => navigate("/dashboard")}
-      >
-        <Typography variant="body1" sx={{ textAlign: "center" }}>
-          Please go to Dashboard and handle your videos
-        </Typography>
-        <ArrowForwardIcon />
-      </Box> */}
     </DashboardLayout>
   );
 }

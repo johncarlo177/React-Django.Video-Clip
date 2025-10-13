@@ -6,7 +6,7 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["username"]  # keep username optional but required for AbstractUser
+    REQUIRED_FIELDS = ["username"]
 
 class DropboxUpload(models.Model):
     userId = models.IntegerField(default=0)

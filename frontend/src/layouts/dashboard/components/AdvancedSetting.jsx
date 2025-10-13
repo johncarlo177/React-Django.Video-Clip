@@ -94,6 +94,10 @@ export default function AdvancedSettings({ open, onClose, video }) {
   }, [open, video]);
 
   const handleTranscribe = async () => {
+    setClips([]);
+    setProcessComplete(false);
+    setClipsStatus("");
+    setKeywordStatus("");
     if (!video) return;
 
     if (!aspectRatio) {
