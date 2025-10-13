@@ -19,6 +19,7 @@ class DropboxUpload(models.Model):
     transcript_text = models.TextField(null=True, blank=True)
     keywords = models.TextField(blank=True, null=True)
     stock_clips = models.TextField(blank=True, null=True)
+    zip_link = models.URLField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.username} - {self.file_name}"

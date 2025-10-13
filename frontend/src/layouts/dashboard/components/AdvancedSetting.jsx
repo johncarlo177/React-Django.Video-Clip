@@ -30,6 +30,8 @@ export default function AdvancedSettings({ open, onClose, video }) {
   const [processComplete, setProcessComplete] = useState(false);
   const [aspectRatio, setAspectRatio] = useState("");
   const [ratioError, setRatioError] = useState(false);
+  const [saveProgress, setSaveProgress] = useState(0);
+  const [downloadLink, setDownloadLink] = useState(null);
 
   // ✅ Stop polling and reset when dialog closes
   const handleClose = () => {
@@ -50,7 +52,9 @@ export default function AdvancedSettings({ open, onClose, video }) {
         const res = await axiosInstance.get(`/api/clip-lists/`, {
           params: { video_id: video.id },
         });
+
         const fetchedClips = res.data.clips || [];
+        const zipLink = res.data.dropbox_link || null;
 
         if (fetchedClips.length > 0) {
           setClips(fetchedClips);
@@ -58,13 +62,23 @@ export default function AdvancedSettings({ open, onClose, video }) {
           setClipsStatus(`✅ Loaded existing stock clips (${fetchedClips.length})`);
         } else {
           setClips([]);
-          setClipsStatus("");
           setProcessComplete(false);
+          setClipsStatus("");
+        }
+
+        // ✅ If ZIP link exists, show Download button
+        if (zipLink) {
+          setDownloadLink(zipLink);
+          setClipsStatus((prev) => prev + " 📦 ZIP available for download.");
+        } else {
+          setDownloadLink(null);
         }
       } catch (err) {
         console.error("Failed to fetch existing clips:", err);
         setClips([]);
+        setProcessComplete(false);
         setClipsStatus("❌ Failed to load existing clips");
+        setDownloadLink(null);
       }
     };
 
@@ -73,8 +87,9 @@ export default function AdvancedSettings({ open, onClose, video }) {
     } else {
       // Reset state when modal closes
       setClips([]);
-      setClipsStatus("");
       setProcessComplete(false);
+      setClipsStatus("");
+      setDownloadLink(null);
     }
   }, [open, video]);
 
@@ -182,6 +197,42 @@ export default function AdvancedSettings({ open, onClose, video }) {
     }
   };
 
+  // handle zip save
+  const handleSave = async () => {
+    if (!video || clips.length === 0) return;
+
+    try {
+      setClipsStatus("📦 Creating ZIP and uploading to Dropbox...");
+      setClipsLoading(true);
+
+      // Simulate progress bar updates
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 10;
+        setSaveProgress(progress);
+        if (progress >= 90) clearInterval(interval); // stop before 100% until server responds
+      }, 400);
+
+      const res = await axiosInstance.post(`/api/save-stock-clips/`, {
+        video_id: video.id,
+        clips,
+      });
+
+      clearInterval(interval);
+      setSaveProgress(100);
+
+      const link = res.data.dropbox_link;
+      setClipsStatus(`✅ ZIP uploaded!`);
+      setDownloadLink(link);
+    } catch (err) {
+      console.error("Save failed:", err);
+      setClipsStatus("❌ Failed to upload ZIP");
+    } finally {
+      setClipsLoading(false);
+      setTimeout(() => setSaveProgress(0), 2000);
+    }
+  };
+
   return (
     <Dialog
       open={open}
@@ -272,13 +323,52 @@ export default function AdvancedSettings({ open, onClose, video }) {
             )}
             {!clipsLoading && clipsStatus && <Typography variant="body2">{clipsStatus}</Typography>}
             {!clipsLoading && clips.length > 0 && (
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mt: 1 }}>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(5, 1fr)", // 5 clips per row
+                  gap: 2,
+                  mt: 1,
+                }}
+              >
                 {clips.map((clip) => (
-                  <Box key={clip.id} sx={{ width: 200 }}>
+                  <Box key={clip.id} sx={{ width: "100%" }}>
                     <video width="100%" src={clip.video_files[0]} controls />
                     <Typography variant="caption">{clip.keyword}</Typography>
                   </Box>
                 ))}
+              </Box>
+            )}
+            {(clipsLoading || saveProgress > 0 || downloadLink || clipsStatus) && (
+              <Box sx={{ mt: 3 }}>
+                {/* Progress bar while saving */}
+                {/* {saveProgress > 0 && saveProgress < 100 && (
+                  <>
+                    <LinearProgress
+                      variant="determinate"
+                      value={saveProgress}
+                      sx={{ width: "100%", mb: 1 }}
+                    />
+                    <Typography variant="body2">{`Uploading... ${saveProgress}%`}</Typography>
+                  </>
+                )} */}
+
+                {downloadLink && (
+                  <Box sx={{ mt: 1 }}>
+                    <Typography variant="body2">
+                      If you download zip file, click &quot;Download ZIP&quot; button
+                    </Typography>
+                    <MDButton
+                      color="success"
+                      component="a"
+                      href={downloadLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Download ZIP
+                    </MDButton>
+                  </Box>
+                )}
               </Box>
             )}
           </Box>
@@ -294,7 +384,7 @@ export default function AdvancedSettings({ open, onClose, video }) {
             <MDButton onClick={handleTranscribe} color="info" disabled={loading || keywordLoading}>
               {loading || keywordLoading ? "Processing..." : "Restart"}
             </MDButton>
-            <MDButton color="success" onClick={() => console.log("Save clicked!")}>
+            <MDButton color="success" onClick={handleSave}>
               Save
             </MDButton>
           </>

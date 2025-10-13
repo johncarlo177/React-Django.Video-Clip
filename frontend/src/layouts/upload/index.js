@@ -99,6 +99,7 @@ function Upload() {
 
       setDownloadUrl(downloadLink);
       setMessage("✅ Video uploaded successfully!");
+      navigate("/dashboard");
 
       // 3️⃣ Save info to backend
       await axiosInstance.post("/api/save-upload-info/", {
@@ -163,7 +164,7 @@ function Upload() {
         }}
       >
         <Typography variant="h5" gutterBottom>
-          Upload Video to Dropbox
+          Upload your Video
         </Typography>
 
         <input
@@ -228,7 +229,7 @@ function Upload() {
           </Typography>
         )}
 
-        {downloadUrl && (
+        {/* {downloadUrl && (
           <Box sx={{ mt: 3, fontSize: 10, textAlign: "left" }}>
             <Typography variant="body1">Download Link:</Typography>
             <Link
@@ -240,9 +241,9 @@ function Upload() {
               {downloadUrl}
             </Link>
           </Box>
-        )}
+        )} */}
       </Box>
-      <Box
+      {/* <Box
         sx={{
           display: "inline-flex",
           alignItems: "center",
@@ -258,7 +259,7 @@ function Upload() {
           Please go to Dashboard and handle your videos
         </Typography>
         <ArrowForwardIcon />
-      </Box>
+      </Box> */}
     </DashboardLayout>
   );
 }

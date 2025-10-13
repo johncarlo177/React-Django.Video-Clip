@@ -1,4 +1,4 @@
-import requests, dropbox, os, json, tempfile, re
+import requests, dropbox, os, json, tempfile, re, io, zipfile
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.http import JsonResponse
@@ -451,18 +451,114 @@ def fetch_stock_videos(request):
 @permission_classes([IsAuthenticated])
 def get_clip_lists(request):
     """
-    Returns the stock clips for a given video_id
+    Returns the stock clips and Dropbox ZIP link for a given video_id
     """
     video_id = request.query_params.get("video_id")
     if not video_id:
-        return Response({"clips": []})
+        return Response({"clips": [], "dropbox_link": None})
 
     try:
         upload = DropboxUpload.objects.get(id=video_id)
         clips = json.loads(upload.stock_clips) if upload.stock_clips else []
-        return Response({"clips": clips})
+        zip_link = getattr(upload, "zip_link", None)  # ✅ add this line
+
+        return Response({
+            "clips": clips,
+            "dropbox_link": zip_link,  # ✅ include Dropbox link
+        })
     except DropboxUpload.DoesNotExist:
-        return Response({"clips": []}, status=404)
+        return Response({"clips": [], "dropbox_link": None}, status=404)
     except Exception as e:
         print(f"Error fetching clips for video {video_id}: {e}")
-        return Response({"clips": []}, status=500)
+        return Response({"clips": [], "dropbox_link": None}, status=500)
+
+    
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def save_stock_clips(request):
+    """
+    Create a ZIP file of fetched stock clips and upload to Dropbox
+    """
+    video_id = request.data.get("video_id")
+    clips = request.data.get("clips", [])
+
+    if not video_id or not clips:
+        return Response({"error": "Missing video_id or clips"}, status=400)
+
+    try:
+        upload = DropboxUpload.objects.get(id=video_id)
+        video_name = upload.file_name.split(".")[0]
+        zip_filename = f"{video_name}_stock_clips.zip"
+
+        # ✅ Create ZIP in memory
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+            for i, clip in enumerate(clips):
+                try:
+                    video_files = clip.get("video_files")
+                    if not video_files:
+                        print(f"⚠️ Clip {i+1} missing video_files: {clip}")
+                        continue
+
+                    # handle both string or dict
+                    video_url = None
+                    if isinstance(video_files[0], str):
+                        video_url = video_files[0]
+                    elif isinstance(video_files[0], dict):
+                        video_url = video_files[0].get("link")
+
+                    if not video_url:
+                        continue
+
+                    # download and write to ZIP
+                    response = requests.get(video_url)
+                    if response.status_code == 200:
+                        zipf.writestr(f"clip_{i+1}.mp4", response.content)
+                    else:
+                        print(f"⚠️ Failed to fetch clip {i+1}: {response.status_code}")
+
+                except Exception as err:
+                    print(f"❌ Error processing clip {i+1}: {err}")
+                    continue
+        zip_buffer.seek(0)
+
+        # ✅ Upload to Dropbox
+        dbx = dropbox.Dropbox(
+            oauth2_refresh_token=os.getenv("DROPBOX_REFRESH_TOKEN"),
+            app_key=os.getenv("DROPBOX_APP_KEY"),
+            app_secret=os.getenv("DROPBOX_APP_SECRET")
+        )
+        dropbox_path = f"/Stock-Clips/{zip_filename}"
+        dbx.files_upload(zip_buffer.read(), dropbox_path, mode=dropbox.files.WriteMode.overwrite)
+
+        # ✅ Try to create or fetch shared link
+        try:
+            shared_link_metadata = dbx.sharing_create_shared_link_with_settings(dropbox_path)
+        except dropbox.exceptions.ApiError as e:
+            if isinstance(e.error, dropbox.sharing.CreateSharedLinkWithSettingsError) and e.error.is_shared_link_already_exists():
+                # link already exists → get existing one
+                shared_links = dbx.sharing_list_shared_links(path=dropbox_path).links
+                if shared_links:
+                    shared_link_metadata = shared_links[0]
+                else:
+                    raise e
+            else:
+                raise e
+
+        dropbox_link = shared_link_metadata.url
+
+        # ✅ Ensure direct download
+        if "dl=0" in dropbox_link:
+            dropbox_link = dropbox_link.replace("dl=0", "dl=1")
+        elif "dl=1" not in dropbox_link:
+            dropbox_link += "dl=1"
+
+        # ✅ Save link in DB
+        upload.zip_link = dropbox_link
+        upload.save()
+
+        return Response({"dropbox_link": dropbox_link})
+
+    except Exception as e:
+        print("Error saving stock clips:", e)
+        return Response({"error": str(e)}, status=500)
