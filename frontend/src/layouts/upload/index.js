@@ -7,6 +7,7 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import axiosInstance from "libs/axios";
 import axios from "axios";
+import Payment from "layouts/dashboard/components/Payment";
 
 function Upload() {
   const [file, setFile] = useState(null);
@@ -14,6 +15,7 @@ function Upload() {
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("");
   const [downloadUrl, setDownloadUrl] = useState("");
+  const [showPayment, setShowPayment] = useState(false);
 
   const navigate = useNavigate();
 
@@ -53,6 +55,7 @@ function Upload() {
     setMessage("");
     setProgress(0);
     setDownloadUrl("");
+    setShowPayment(true);
 
     try {
       const token = await getDropboxToken();
@@ -110,8 +113,11 @@ function Upload() {
 
       setFile(null);
     } catch (err) {
-      // If link already exists (409 conflict), fetch existing one
-      if (err.response?.status === 409) {
+      if (err.response?.status === 402) {
+        setMessage("Payment required for further uploads.");
+        setShowPayment(true);
+        return; // stop here
+      } else if (err.response?.status === 409) {
         try {
           const token = await getDropboxToken();
           const filePath = "/Videos/" + file.name;
@@ -142,6 +148,10 @@ function Upload() {
       setUploading(false);
     }
   };
+
+  if (showPayment) {
+    return <Payment priceId="price_12345" email="user@example.com" />;
+  }
 
   const fileInputRef = useRef();
 

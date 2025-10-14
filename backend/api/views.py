@@ -12,6 +12,7 @@ from django.conf import settings
 from moviepy.video.io.VideoFileClip import VideoFileClip
 from .serializers import DropboxUploadSerializer
 from .models import User, DropboxUpload
+from payments.models import Payment
 
 User = get_user_model()
 
@@ -139,18 +140,47 @@ def generate_dropbox_token(request):
     return JsonResponse({'access_token': short_lived_token})
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])  # or AllowAny if no login required
+@permission_classes([IsAuthenticated])
 def save_upload_info(request):
-    data = request.data
     user = request.user
+    file_name = request.data.get("file_name")
+    dropbox_path = request.data.get("dropbox_path")
+    dropbox_link = request.data.get("dropbox_link")
+
+    # 1️⃣ Check if user already uploaded before
+    upload_count = DropboxUpload.objects.filter(userId=user.id).count()
+
+    # 2️⃣ If first upload → free trial
+    if upload_count == 0:
+        # Register trial payment if not exists
+        Payment.objects.get_or_create(
+            user=user, plan="trial", defaults={"amount": 0, "status": "paid"}
+        )
+
+    # 3️⃣ If second or later upload → require payment
+    elif upload_count >= 1:
+        # Check if user has any active or paid subscription
+        has_paid = Payment.objects.filter(
+            user=user,
+            status="paid",
+        ).exclude(plan="trial").exists()
+
+        if not has_paid:
+            return Response(
+                {"error": "Payment required for further uploads."},
+                status=402,  # Payment Required
+            )
+
+    # 4️⃣ Save the upload
     DropboxUpload.objects.create(
         userId=user.id,
         username=user.username,
-        file_name=data.get("file_name"),
-        dropbox_path=data.get("dropbox_path"),
-        dropbox_link=data.get("dropbox_link"),
+        file_name=file_name,
+        dropbox_path=dropbox_path,
+        dropbox_link=dropbox_link,
     )
-    return Response({"message": "Upload info saved successfully"}, status=status.HTTP_201_CREATED)
+
+    return Response({"success": True, "message": "Upload saved successfully."})
 
 @api_view(['GET'])
 def list_videos(request):

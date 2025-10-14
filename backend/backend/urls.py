@@ -20,6 +20,8 @@ from api.views import hello
 from django.conf import settings
 from django.conf.urls.static import static
 from api.views import signup, signin, refresh_token, logout_view, admin_signin, generate_dropbox_token, save_upload_info, list_videos, delete_video, transcribe_video, check_transcription_status, keyword_detection, fetch_stock_videos, get_clip_lists, save_stock_clips
+from payments.views import create_checkout_session
+from payments.webhooks import stripe_webhook
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -38,5 +40,7 @@ urlpatterns = [
     path('api/keyword-detection/<int:video_id>/', keyword_detection),
     path('api/fetch-stock-clips/', fetch_stock_videos),
     path('api/clip-lists/', get_clip_lists),
-    path('api/save-stock-clips/', save_stock_clips)
+    path('api/save-stock-clips/', save_stock_clips),
+    path("api/payments/create-checkout-session/", create_checkout_session, name="create-checkout-session"),
+    path("api/stripe-webhook/", stripe_webhook, name="stripe-webhook"),
 ]
