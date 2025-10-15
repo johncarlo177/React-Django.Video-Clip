@@ -15,7 +15,6 @@ function Upload() {
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("");
   const [downloadUrl, setDownloadUrl] = useState("");
-  const [showPayment, setShowPayment] = useState(false);
 
   const navigate = useNavigate();
 
@@ -45,9 +44,36 @@ function Upload() {
     return url + "&dl=1";
   };
 
+  // get video count
+  const getUserVideoCount = async () => {
+    try {
+      const res = await axiosInstance.get("/api/videos/count/");
+      return res.data.count ?? 0;
+    } catch (err) {
+      console.error("Error getting video count:", err);
+      return null;
+    }
+  };
+
   const handleUpload = async () => {
     if (!file) {
       setMessage("Please select a video file first");
+      return;
+    }
+
+    // 0) Check user's video count first
+    const count = await getUserVideoCount();
+    console.log(count, "count");
+    if (count === null) {
+      setMessage("Could not validate account limits. Try again later.");
+      return;
+    }
+
+    // If user already uploaded >= allowed free limit -> show payment
+    const FREE_LIMIT = 1; // change if you want another free quota
+    if (count >= FREE_LIMIT) {
+      setMessage("Payment required for further uploads.");
+      navigate("/subscription");
       return;
     }
 
@@ -55,7 +81,6 @@ function Upload() {
     setMessage("");
     setProgress(0);
     setDownloadUrl("");
-    setShowPayment(true);
 
     try {
       const token = await getDropboxToken();
@@ -113,11 +138,7 @@ function Upload() {
 
       setFile(null);
     } catch (err) {
-      if (err.response?.status === 402) {
-        setMessage("Payment required for further uploads.");
-        setShowPayment(true);
-        return; // stop here
-      } else if (err.response?.status === 409) {
+      if (err.response?.status === 409) {
         try {
           const token = await getDropboxToken();
           const filePath = "/Videos/" + file.name;
@@ -136,6 +157,7 @@ function Upload() {
             console.log(existingLink, "existing Link");
             setDownloadUrl(existingLink);
             setMessage("Video already shared — using existing link!");
+            // navigate("/dashboard");
           }
         } catch (subErr) {
           console.error("Error fetching existing link:", subErr);
@@ -148,10 +170,6 @@ function Upload() {
       setUploading(false);
     }
   };
-
-  if (showPayment) {
-    return <Payment priceId="price_12345" email="user@example.com" />;
-  }
 
   const fileInputRef = useRef();
 
