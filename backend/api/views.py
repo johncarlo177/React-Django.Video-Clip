@@ -154,7 +154,8 @@ def save_upload_info(request):
 
 @api_view(['GET'])
 def list_videos(request):
-    videos = DropboxUpload.objects.all().order_by('-uploaded_at')
+    # Only videos with a dropbox_link
+    videos = DropboxUpload.objects.filter(dropbox_link__isnull=False).exclude(dropbox_link="").order_by('-uploaded_at')
     serializer = DropboxUploadSerializer(videos, many=True)
     return Response(serializer.data)
 
@@ -178,8 +179,15 @@ def delete_video(request, video_id):
                 # File may not exist, log error but continue
                 print("Dropbox delete error:", e)
 
-        # Delete from database
-        video.delete()
+        # Clear fields instead of deleting the record
+        video.dropbox_path = None
+        video.dropbox_link = None
+        video.transcription_job_id = None
+        video.transcript_text = None
+        video.keywords = "" 
+        video.stock_clips = "" 
+        video.zip_link = None
+        video.save()
 
         return Response({"message": "Video deleted successfully."})
 

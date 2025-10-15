@@ -243,11 +243,8 @@ export default function GetStockClips() {
       <Box
         sx={{
           p: 4,
-          borderRadius: 3,
           maxWidth: "1200px",
           mx: "auto",
-          backgroundColor: "#f5f5f5",
-          boxShadow: 3,
           overflowX: "hidden",
         }}
       >
@@ -276,6 +273,7 @@ export default function GetStockClips() {
                   setAspectRatio(e.target.value);
                   setRatioError(false);
                 }}
+                sx={{ height: "40px" }}
               >
                 <MenuItem value="default">Default</MenuItem>
                 <MenuItem value="16:9">16:9</MenuItem>
@@ -300,7 +298,7 @@ export default function GetStockClips() {
           </Typography>
           {loading ? (
             <>
-              <LinearProgress sx={{ width: "100%", mb: 1 }} />
+              <LinearProgress sx={{ width: "100%", mb: 1, overflow: "hidden" }} />
               <Typography variant="body2">{status}</Typography>
             </>
           ) : (
@@ -315,7 +313,7 @@ export default function GetStockClips() {
           </Typography>
           {keywordLoading ? (
             <>
-              <LinearProgress sx={{ width: "100%", mb: 1 }} />
+              <LinearProgress sx={{ width: "100%", mb: 1, overflow: "hidden" }} />
               <Typography variant="body2">{keywordStatus}</Typography>
             </>
           ) : (
@@ -333,7 +331,7 @@ export default function GetStockClips() {
             <Box>
               {clipsLoading && (
                 <>
-                  <LinearProgress sx={{ width: "100%", mb: 1 }} />
+                  <LinearProgress sx={{ width: "100%", mb: 1, overflow: "hidden" }} />
                   <Typography variant="body2">{clipsStatus || ""}</Typography>
                 </>
               )}
