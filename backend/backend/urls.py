@@ -42,6 +42,6 @@ urlpatterns = [
     path('api/clip-lists/', get_clip_lists),
     path('api/save-stock-clips/', save_stock_clips),
     path('api/videos/count/', user_video_count),
-    path("api/payments/create-checkout-session/", create_checkout_session, name="create-checkout-session"),
+    path("api/payment/create-checkout-session/", create_checkout_session, name="create-checkout-session"),
     path("api/stripe-webhook/", stripe_webhook, name="stripe-webhook"),
 ]

@@ -76,7 +76,7 @@ export default function App() {
   }, [pathname]);
 
   // ----- FILTER ROUTES FOR SIDEBARS -----
-  const userRoutes = routes.filter((r) => !r.admin);
+  const userRoutes = routes.filter((r) => !r.admin && !r.hidden);
   const adminRoutes = routes.filter((r) => r.admin);
 
   // ----- RENDER ROUTES -----

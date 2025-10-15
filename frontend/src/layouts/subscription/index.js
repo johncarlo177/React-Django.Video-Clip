@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Box, Grid, Card, CardContent, Typography, Button, Divider } from "@mui/material";
 import { CheckCircle, Rocket, Star, Diamond } from "@mui/icons-material";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -31,34 +31,39 @@ const plans = [
       "Ideal for freelancers or small teams",
     ],
     icon: <Rocket sx={{ fontSize: 40, color: "#2196f3" }} />,
-    buttonText: "Upload Now",
+    buttonText: "Subscribew",
     color: "#e3f2fd",
-    router: "/upload",
+    router: "/subscription/checkout",
   },
   {
-    title: "Unlimited Monthly",
+    title: "Monthly",
     price: "$49 / month",
     description: "Best for active creators who upload frequently.",
     details: ["Unlimited uploads", "Priority AI processing", "Cancel anytime"],
     icon: <Star sx={{ fontSize: 40, color: "#ffb300" }} />,
-    buttonText: "Subscribe Monthly",
+    buttonText: "Subscribe",
     color: "#fff8e1",
-    router: "/upload",
+    router: "/subscription/checkout",
   },
   {
-    title: "Unlimited Yearly",
+    title: "Yearly",
     price: "$500 / year",
     description: "Get the best value with annual billing.",
     details: ["Unlimited uploads", "Priority AI processing", "Save 15% compared to monthly plan"],
     icon: <Diamond sx={{ fontSize: 40, color: "#9c27b0" }} />,
-    buttonText: "Subscribe Yearly",
+    buttonText: "Subscribe",
     color: "#f3e5f5",
-    router: "/upload",
+    router: "/subscription/checkout",
   },
 ];
 
 function Billing() {
   const navigate = useNavigate();
+
+  const handleSelectPlan = (plan) => {
+    navigate(`${plan.router}?title=${encodeURIComponent(plan.title)}`, { state: { plan } });
+  };
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -142,7 +147,7 @@ function Billing() {
                       fontWeight: "bold",
                       "&:hover": { backgroundColor: "#115293" },
                     }}
-                    onClick={() => navigate(plan.router)}
+                    onClick={() => handleSelectPlan(plan)}
                   >
                     {plan.buttonText}
                   </Button>

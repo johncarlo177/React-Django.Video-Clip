@@ -10,6 +10,7 @@ import SignUp from "layouts/authentication/sign-up";
 import Deliveries from "layouts/deliveries";
 import PaymentStatus from "layouts/payment-status";
 import ViewUploads from "layouts/view-uploads";
+import CheckoutPage from "layouts/subscription/components/Checkout";
 import Icon from "@mui/material/Icon";
 
 const routes = [
@@ -39,6 +40,15 @@ const routes = [
     route: "/subscription",
     component: <Billing />,
     protected: true,
+  },
+  {
+    type: "collapse",
+    name: "checkout",
+    key: "checkout",
+    route: "/subscription/checkout",
+    component: <CheckoutPage />,
+    protected: false,
+    hidden: true,
   },
   {
     type: "collapse",
