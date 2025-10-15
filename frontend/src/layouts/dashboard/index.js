@@ -18,14 +18,14 @@ import axiosInstance from "libs/axios";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SettingsIcon from "@mui/icons-material/Settings";
 import DeleteVideo from "./components/DeleteVideo";
-import AdvancedSettings from "./components/AdvancedSetting";
+import AdvancedSettings from "./components/GetStockClips";
+import { useNavigate } from "react-router-dom";
 
 function Dashboard() {
   const [videos, setVideos] = useState([]);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [videoToDelete, setVideoToDelete] = useState(null);
-  const [openSettingsModal, setOpenSettingsModal] = useState(false);
-  const [selectedVideo, setSelectedVideo] = useState(null);
+  const navigate = useNavigate();
 
   // Fetch video list
   useEffect(() => {
@@ -68,14 +68,10 @@ function Dashboard() {
     setOpenDeleteModal(false);
   };
 
-  const handleOpenSettingsModal = (video) => {
-    setSelectedVideo(video);
-    setOpenSettingsModal(true);
-  };
-
-  const handleCloseSettingsModal = () => {
-    setSelectedVideo(null);
-    setOpenSettingsModal(false);
+  const handleGetStockClips = (video) => {
+    navigate(`/dashboard/get-stock-clips?id=${video.id}`, {
+      state: { video: video },
+    });
   };
 
   return (
@@ -113,7 +109,7 @@ function Dashboard() {
                       </IconButton>
                     </TableCell>
                     <TableCell>
-                      <IconButton color="dark" onClick={() => handleOpenSettingsModal(video)}>
+                      <IconButton color="dark" onClick={() => handleGetStockClips(video)}>
                         <SettingsIcon />
                       </IconButton>
                     </TableCell>
@@ -134,11 +130,6 @@ function Dashboard() {
         open={openDeleteModal}
         onClose={handleCloseDeleteModal}
         videoId={videoToDelete}
-      />
-      <AdvancedSettings
-        open={openSettingsModal}
-        onClose={handleCloseSettingsModal}
-        video={selectedVideo}
       />
     </DashboardLayout>
   );

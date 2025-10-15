@@ -7,7 +7,6 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import axiosInstance from "libs/axios";
 import axios from "axios";
-import Payment from "layouts/dashboard/components/Payment";
 
 function Upload() {
   const [file, setFile] = useState(null);

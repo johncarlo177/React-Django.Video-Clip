@@ -11,6 +11,7 @@ import Deliveries from "layouts/deliveries";
 import PaymentStatus from "layouts/payment-status";
 import ViewUploads from "layouts/view-uploads";
 import CheckoutPage from "layouts/subscription/components/Checkout";
+import GetStockClips from "layouts/dashboard/components/GetStockClips";
 import Icon from "@mui/material/Icon";
 
 const routes = [
@@ -22,6 +23,15 @@ const routes = [
     route: "/dashboard",
     component: <Dashboard />,
     protected: true,
+  },
+  {
+    type: "collapse",
+    name: "Stock-Clips",
+    key: "stock-clips",
+    route: "/dashboard/get-stock-clips",
+    component: <GetStockClips />,
+    protected: true,
+    hidden: true,
   },
   {
     type: "collapse",
@@ -47,7 +57,7 @@ const routes = [
     key: "checkout",
     route: "/subscription/checkout",
     component: <CheckoutPage />,
-    protected: false,
+    protected: true,
     hidden: true,
   },
   {
