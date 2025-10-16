@@ -18,7 +18,6 @@ import axiosInstance from "libs/axios";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SettingsIcon from "@mui/icons-material/Settings";
 import DeleteVideo from "./components/DeleteVideo";
-import AdvancedSettings from "./components/GetStockClips";
 import { useNavigate } from "react-router-dom";
 
 function Dashboard() {

@@ -60,6 +60,8 @@ def create_checkout_session(request):
                 else os.getenv("STRIPE_YEARLY_PRICE_ID")
             )
 
+            amount = 49 if plan_type == "monthly" else 500
+
             session = stripe.checkout.Session.create(
                 ui_mode="embedded",  # ✅ Required for EmbeddedCheckout
                 customer_email=user.email,
@@ -72,7 +74,7 @@ def create_checkout_session(request):
             Payment.objects.create(
                 user=user,
                 plan=plan_type,
-                amount=0,
+                amount=amount,
                 stripe_session_id=session.id,
             )
 
