@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Grid, Card, CardContent, Typography, Button, Divider } from "@mui/material";
 import { CheckCircle, Rocket, Star, Diamond } from "@mui/icons-material";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import { useLocation, useNavigate } from "react-router-dom";
+import axiosInstance from "libs/axios";
 
 const plans = [
   {
@@ -16,7 +17,7 @@ const plans = [
       "No credit card required",
     ],
     icon: <CheckCircle sx={{ fontSize: 40, color: "#4caf50" }} />,
-    buttonText: "Start Free Trial",
+    buttonText: "Free Trial",
     color: "#e8f5e9",
     router: "/upload",
   },
@@ -59,6 +60,7 @@ const plans = [
 function Billing() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [activePlan, setActivePlan] = useState(null);
   const videoLength = location.state?.videoLength || 0;
 
   const handleSelectPlan = (plan) => {
@@ -67,10 +69,63 @@ function Billing() {
     });
   };
 
+  useEffect(() => {
+    const fetchActivePlan = async () => {
+      try {
+        const res = await axiosInstance.get("/api/payment/get-active-plan/");
+        if (res.data.has_active_plan) {
+          setActivePlan(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch active plan:", err);
+      }
+    };
+
+    fetchActivePlan();
+  }, []);
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
       <Box sx={{ p: 4 }}>
+        {videoLength > 0 && (
+          <Typography
+            variant="body2"
+            sx={{
+              mb: 1,
+              borderRadius: 3,
+              textAlign: "center",
+              color: "red",
+            }}
+          >
+            Great start! You’ve used your free upload. Upgrade now to keep creating and uploading
+            more videos.
+          </Typography>
+        )}
+        {activePlan && (
+          <Typography
+            variant="body2"
+            sx={{
+              mb: 1,
+              borderRadius: 3,
+              textAlign: "center",
+            }}
+          >
+            Your{" "}
+            <strong>
+              {activePlan.plan.charAt(0).toUpperCase() + activePlan.plan.slice(1)} Plan
+            </strong>{" "}
+            is active. Enjoy unlimited access until{" "}
+            <strong>
+              {new Date(activePlan.expires_at).toLocaleDateString(undefined, {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </strong>
+            .
+          </Typography>
+        )}
         <Typography variant="h4" sx={{ fontWeight: "bold", mb: 2, textAlign: "center" }}>
           Choose Your Plan
         </Typography>
@@ -142,17 +197,36 @@ function Billing() {
                   <Button
                     variant="contained"
                     fullWidth
+                    disabled={
+                      (activePlan?.plan === "monthly" && plan.title === "Monthly") ||
+                      (activePlan?.plan === "yearly" && ["Monthly", "Yearly"].includes(plan.title))
+                    }
                     sx={{
                       borderRadius: 3,
                       py: 1.2,
-                      backgroundColor: "#1976d2",
+                      backgroundColor:
+                        (activePlan?.plan === "monthly" && plan.title === "Monthly") ||
+                        (activePlan?.plan === "yearly" &&
+                          ["Monthly", "Yearly"].includes(plan.title))
+                          ? "#B0BEC5" // gray when disabled
+                          : "#1976d2",
                       color: "white !important",
                       fontWeight: "bold",
-                      "&:hover": { backgroundColor: "#115293" },
+                      "&:hover": {
+                        backgroundColor:
+                          (activePlan?.plan === "monthly" && plan.title === "Monthly") ||
+                          (activePlan?.plan === "yearly" &&
+                            ["Monthly", "Yearly"].includes(plan.title))
+                            ? "#B0BEC5"
+                            : "#115293",
+                      },
                     }}
                     onClick={() => handleSelectPlan(plan)}
                   >
-                    {plan.buttonText}
+                    {(activePlan?.plan === "monthly" && plan.title === "Monthly") ||
+                    (activePlan?.plan === "yearly" && ["Monthly", "Yearly"].includes(plan.title))
+                      ? "Already Active"
+                      : plan.buttonText}
                   </Button>
                 </Box>
               </Card>

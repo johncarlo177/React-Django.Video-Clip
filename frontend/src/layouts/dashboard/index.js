@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import axiosInstance from "libs/axios";
@@ -31,12 +32,29 @@ function Dashboard() {
     const fetchVideos = async () => {
       try {
         const res = await axiosInstance.get("/api/video-lists/");
-        setVideos(res.data);
-        console.log(res.data, "result");
+        const videoList = res.data;
+
+        // 🔍 For each video, check if clips ZIP exists
+        const updatedVideos = await Promise.all(
+          videoList.map(async (video) => {
+            try {
+              const clipsRes = await axiosInstance.get(`/api/clip-lists/`, {
+                params: { video_id: video.id },
+              });
+              const zipLink = clipsRes.data.dropbox_link || null;
+              return { ...video, zip_link: zipLink };
+            } catch {
+              return { ...video, zip_link: null };
+            }
+          })
+        );
+
+        setVideos(updatedVideos);
       } catch (err) {
         console.error("Failed to fetch videos:", err);
       }
     };
+
     fetchVideos();
   }, []);
 
@@ -91,6 +109,7 @@ function Dashboard() {
                         variant="rounded"
                         sx={{ cursor: "pointer" }}
                         onClick={() => handleWatch(video.dropbox_link)}
+                        title="Play Video"
                       >
                         <PlayArrowIcon />
                       </Avatar>
@@ -98,19 +117,42 @@ function Dashboard() {
                     <TableCell>{video.file_name}</TableCell>
                     <TableCell>{new Date(video.uploaded_at).toLocaleString()}</TableCell>
                     <TableCell>
-                      <IconButton onClick={() => handleDownload(video.dropbox_link)}>
+                      <IconButton
+                        color="dark"
+                        onClick={() => handleDownload(video.dropbox_link)}
+                        title="Download Uploaded Video"
+                      >
                         <CloudDownloadIcon />
                       </IconButton>
                     </TableCell>
                     <TableCell>
-                      <IconButton color="dark" onClick={() => handleOpenDeleteModal(video.id)}>
+                      <IconButton
+                        color="dark"
+                        onClick={() => handleOpenDeleteModal(video.id)}
+                        title="Delete Video"
+                      >
                         <DeleteIcon />
                       </IconButton>
                     </TableCell>
                     <TableCell>
-                      <IconButton color="dark" onClick={() => handleGetStockClips(video)}>
+                      <IconButton
+                        color="dark"
+                        onClick={() => handleGetStockClips(video)}
+                        title="Get Stock Clips"
+                      >
                         <SettingsIcon />
                       </IconButton>
+                    </TableCell>
+                    <TableCell>
+                      {video.zip_link && (
+                        <IconButton
+                          color="dark"
+                          onClick={() => handleDownload(video.zip_link)}
+                          title="Download Stock Clips ZIP"
+                        >
+                          <FileDownloadIcon />
+                        </IconButton>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))

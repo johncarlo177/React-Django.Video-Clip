@@ -329,16 +329,6 @@ export default function GetStockClips() {
 
           {(clipsLoading || clipsStatus || clips.length > 0) && (
             <Box>
-              {clipsLoading && (
-                <>
-                  <LinearProgress sx={{ width: "100%", mb: 1, overflow: "hidden" }} />
-                  <Typography variant="body2">{clipsStatus || ""}</Typography>
-                </>
-              )}
-              {!clipsLoading && clipsStatus && (
-                <Typography variant="body2">{clipsStatus}</Typography>
-              )}
-
               {clips.length > 0 && (
                 <Box
                   sx={{
@@ -346,6 +336,7 @@ export default function GetStockClips() {
                     gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
                     gap: 2,
                     mt: 2,
+                    mb: 2,
                   }}
                 >
                   {clips.map((clip) => (
@@ -360,6 +351,15 @@ export default function GetStockClips() {
                     </Paper>
                   ))}
                 </Box>
+              )}
+              {clipsLoading && (
+                <>
+                  <LinearProgress sx={{ width: "100%", mb: 1, overflow: "hidden" }} />
+                  <Typography variant="body2">{clipsStatus || ""}</Typography>
+                </>
+              )}
+              {!clipsLoading && clipsStatus && (
+                <Typography variant="body2">{clipsStatus}</Typography>
               )}
 
               {downloadLink && (

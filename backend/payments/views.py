@@ -162,4 +162,26 @@ def verify_session(request, session_id):
 
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+    
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_active_plan(request):
+    user = request.user
+    now = timezone.now()
+
+    active_payment = Payment.objects.filter(
+        user=user,
+        expires_at__gt=now,  # not expired
+        status="paid"
+    ).order_by("-expires_at").first()
+
+    if active_payment:
+        return Response({
+            "has_active_plan": True,
+            "plan": active_payment.plan,
+            "amount": str(active_payment.amount),
+            "expires_at": active_payment.expires_at,
+        })
+    else:
+        return Response({"has_active_plan": False})
 

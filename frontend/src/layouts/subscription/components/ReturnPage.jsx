@@ -21,7 +21,7 @@ function ReturnPage() {
         .then((res) => {
           if (res.data.status === "paid") {
             setStatus("success");
-            setMessage("✅ Payment successful! Thank you for subscribing.");
+            setMessage("Payment successful! Thank you for subscribing.");
           } else {
             setStatus("pending");
             setMessage("⏳ Payment is still pending...");
