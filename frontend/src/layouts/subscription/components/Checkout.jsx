@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { loadStripe } from "@stripe/stripe-js";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -17,6 +17,7 @@ function CheckoutPage() {
   const location = useLocation();
   const query = useQuery();
   const plan = location.state?.plan;
+  const minutes = location.state?.videoLength || 0;
 
   // Fallback: derive minimal plan info from query param
   const planTitle = plan?.title || query.get("title");
@@ -24,9 +25,10 @@ function CheckoutPage() {
   const fetchClientSecret = useCallback(async () => {
     const response = await axiosInstance.post("/api/payment/create-checkout-session/", {
       plan: { title: planTitle },
+      minutes,
     });
     return response.data.clientSecret;
-  }, [planTitle]);
+  }, [planTitle, minutes]);
 
   if (!planTitle) {
     return <Typography>No plan selected.</Typography>;
@@ -45,7 +47,13 @@ function CheckoutPage() {
         }}
       >
         <EmbeddedCheckoutProvider stripe={stripePromise} options={{ fetchClientSecret }}>
-          <EmbeddedCheckout />
+          <EmbeddedCheckout
+            onComplete={(session) => {
+              console.log("Payment complete!", session);
+              // Redirect programmatically to your return page
+              window.location.href = `/subscription/checkout-return?session_id=${session.id}`;
+            }}
+          />
         </EmbeddedCheckoutProvider>
       </Box>
     </DashboardLayout>

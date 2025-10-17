@@ -11,6 +11,7 @@ import Deliveries from "layouts/deliveries";
 import PaymentStatus from "layouts/payment-status";
 import ViewUploads from "layouts/view-uploads";
 import CheckoutPage from "layouts/subscription/components/Checkout";
+import ReturnPage from "layouts/subscription/components/ReturnPage";
 import GetStockClips from "layouts/dashboard/components/GetStockClips";
 import Icon from "@mui/material/Icon";
 
@@ -57,6 +58,15 @@ const routes = [
     key: "checkout",
     route: "/subscription/checkout",
     component: <CheckoutPage />,
+    protected: true,
+    hidden: true,
+  },
+  {
+    type: "collapse",
+    name: "checkout-return",
+    key: "checkout-return",
+    route: "/subscription/checkout-return",
+    component: <ReturnPage />,
     protected: true,
     hidden: true,
   },

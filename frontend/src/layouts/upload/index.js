@@ -14,6 +14,7 @@ function Upload() {
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("");
   const [downloadUrl, setDownloadUrl] = useState("");
+  const [videoLength, setVideoLength] = useState(0);
 
   const navigate = useNavigate();
 
@@ -72,7 +73,7 @@ function Upload() {
     const FREE_LIMIT = 1; // change if you want another free quota
     if (count >= FREE_LIMIT) {
       setMessage("Payment required for further uploads.");
-      navigate("/subscription");
+      navigate("/subscription", { state: { videoLength } });
       return;
     }
 
@@ -176,6 +177,25 @@ function Upload() {
     fileInputRef.current.click();
   };
 
+  const handleFileSelect = (e) => {
+    const selectedFile = e.target.files[0];
+    if (!selectedFile) return;
+
+    const video = document.createElement("video");
+    video.preload = "metadata";
+
+    video.onloadedmetadata = () => {
+      window.URL.revokeObjectURL(video.src);
+      const duration = video.duration; // seconds
+      const minutes = Math.ceil(duration / 60); // round up
+      setVideoLength(minutes);
+      console.log("Video length (min):", minutes);
+    };
+
+    video.src = URL.createObjectURL(selectedFile);
+    setFile(selectedFile);
+  };
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
@@ -199,11 +219,7 @@ function Upload() {
           accept="video/*"
           ref={fileInputRef}
           style={{ display: "none" }}
-          onChange={(e) => {
-            if (e.target.files.length > 0) {
-              setFile(e.target.files[0]);
-            }
-          }}
+          onChange={handleFileSelect}
           disabled={uploading}
         />
 

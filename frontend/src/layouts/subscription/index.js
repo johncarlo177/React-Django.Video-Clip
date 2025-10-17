@@ -3,7 +3,7 @@ import { Box, Grid, Card, CardContent, Typography, Button, Divider } from "@mui/
 import { CheckCircle, Rocket, Star, Diamond } from "@mui/icons-material";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const plans = [
   {
@@ -31,7 +31,7 @@ const plans = [
       "Ideal for freelancers or small teams",
     ],
     icon: <Rocket sx={{ fontSize: 40, color: "#2196f3" }} />,
-    buttonText: "Subscribew",
+    buttonText: "Pay",
     color: "#e3f2fd",
     router: "/subscription/checkout",
   },
@@ -59,9 +59,13 @@ const plans = [
 
 function Billing() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const videoLength = location.state?.videoLength || 0;
 
   const handleSelectPlan = (plan) => {
-    navigate(`${plan.router}?title=${encodeURIComponent(plan.title)}`, { state: { plan } });
+    navigate(`${plan.router}?title=${encodeURIComponent(plan.title)}`, {
+      state: { plan, videoLength },
+    });
   };
 
   return (
@@ -105,6 +109,11 @@ function Billing() {
                   <Typography variant="h4" sx={{ mt: 1, mb: 0.5, fontWeight: "bold" }}>
                     {plan.price}
                   </Typography>
+                  {plan.title === "Pay-as-you-go" && videoLength > 0 && (
+                    <Typography variant="subtitle1" sx={{ mt: 1, fontWeight: "bold" }}>
+                      Estimated Charge: ${Math.max(videoLength, 5)} for {videoLength} min
+                    </Typography>
+                  )}
                   {plan.subtitle && (
                     <Typography variant="subtitle2" color="text.secondary">
                       {plan.subtitle}
