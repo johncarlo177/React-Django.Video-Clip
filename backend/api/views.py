@@ -227,6 +227,7 @@ def transcribe_video(request, video_id):
 
         # Use Dropbox preview link
         video_url = video.dropbox_link
+        
         if "?dl=1" in video_url:
             video_url = video_url.replace("?dl=1", "?dl=0")
         elif not video_url.endswith("?dl=0"):
