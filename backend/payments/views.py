@@ -1,5 +1,7 @@
 import os
 import stripe
+from datetime import timedelta
+from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -111,6 +113,12 @@ def stripe_webhook(request):
 
         user = User.objects.filter(id=user_id).first()
         if user:
+            expires_at = None
+            if plan == "monthly":
+                expires_at = timezone.now() + timedelta(days=30)
+            elif plan == "yearly":
+                expires_at = timezone.now() + timedelta(days=365)
+
             Payment.objects.create(
                 user=user,
                 plan=plan,
@@ -119,7 +127,16 @@ def stripe_webhook(request):
                 stripe_payment_intent=payment_intent,
                 status="paid",
                 created_at=timezone.now(),
+                expires_at=expires_at,
             )
+            # Apply upload count logic
+            if plan == "pay_per_minute":
+                user.video_credits -= 1
+                user.save(update_fields=["video_credits"])
+
+            elif plan in ["monthly", "yearly"]:
+                user.video_credits = 0
+                user.save(update_fields=["video_credits"])
 
     return Response(status=200)
 

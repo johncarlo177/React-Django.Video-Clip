@@ -17,7 +17,8 @@ function CheckoutPage() {
   const location = useLocation();
   const query = useQuery();
   const plan = location.state?.plan;
-  const minutes = location.state?.videoLength || 0;
+  const minutes = Number(location.state?.videoLength || query.get("minutes") || 0);
+  console.log(minutes, "minutes");
 
   // Fallback: derive minimal plan info from query param
   const planTitle = plan?.title || query.get("title");
@@ -50,7 +51,6 @@ function CheckoutPage() {
           <EmbeddedCheckout
             onComplete={(session) => {
               console.log("Payment complete!", session);
-              // Redirect programmatically to your return page
               window.location.href = `/subscription/checkout-return?session_id=${session.id}`;
             }}
           />

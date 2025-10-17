@@ -1,4 +1,5 @@
 import requests, dropbox, os, json, tempfile, re, io, zipfile
+from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.http import JsonResponse
@@ -12,6 +13,7 @@ from django.conf import settings
 from moviepy.video.io.VideoFileClip import VideoFileClip
 from .serializers import DropboxUploadSerializer
 from .models import User, DropboxUpload
+from payments.models import Payment 
 
 User = get_user_model()
 
@@ -139,18 +141,42 @@ def generate_dropbox_token(request):
     return JsonResponse({'access_token': short_lived_token})
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])  # or AllowAny if no login required
+@permission_classes([IsAuthenticated])
 def save_upload_info(request):
     data = request.data
     user = request.user
-    DropboxUpload.objects.create(
-        userId=user.id,
-        username=user.username,
-        file_name=data.get("file_name"),
-        dropbox_path=data.get("dropbox_path"),
-        dropbox_link=data.get("dropbox_link"),
-    )
-    return Response({"message": "Upload info saved successfully"}, status=status.HTTP_201_CREATED)
+
+    try:
+        # Save the upload info
+        DropboxUpload.objects.create(
+            userId=user.id,
+            username=user.username,
+            file_name=data.get("file_name"),
+            dropbox_path=data.get("dropbox_path"),
+            dropbox_link=data.get("dropbox_link"),
+        )
+
+        # Check if user has an active subscription
+        latest_payment = Payment.objects.filter(
+            user=user,
+            status="paid",
+            expires_at__gt=timezone.now()
+        ).order_by("-expires_at").first()
+
+        if not latest_payment:
+            # No active subscription → increment video credits
+            user.video_credits = (user.video_credits or 0) + 1
+            user.save(update_fields=["video_credits"])
+        # else: user has an active monthly/yearly subscription → do not increment
+
+        return Response(
+            {"message": "Upload info saved successfully", "video_credits": user.video_credits},
+            status=status.HTTP_201_CREATED,
+        )
+
+    except Exception as e:
+        print("Error saving upload info:", e)
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 def list_videos(request):
@@ -576,7 +602,7 @@ def save_stock_clips(request):
 def user_video_count(request):
     user = request.user
     try:
-        count = DropboxUpload.objects.filter(userId=user.id).count()
+        count = user.video_credits
         return Response({"count": count}, status=200)
     except Exception as e:
         print("Error fetching video count:", e)

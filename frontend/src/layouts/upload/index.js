@@ -189,7 +189,6 @@ function Upload() {
       const duration = video.duration; // seconds
       const minutes = Math.ceil(duration / 60); // round up
       setVideoLength(minutes);
-      console.log("Video length (min):", minutes);
     };
 
     video.src = URL.createObjectURL(selectedFile);

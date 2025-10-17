@@ -22,8 +22,7 @@ const plans = [
   },
   {
     title: "Pay-as-you-go",
-    price: "$1 / min",
-    subtitle: "(min. $5)",
+    price: "$1/min (min $5)",
     description: "Perfect for occasional uploads.",
     details: [
       "Pay only for what you use",
@@ -37,7 +36,7 @@ const plans = [
   },
   {
     title: "Monthly",
-    price: "$49 / month",
+    price: "$49/month",
     description: "Best for active creators who upload frequently.",
     details: ["Unlimited uploads", "Priority AI processing", "Cancel anytime"],
     icon: <Star sx={{ fontSize: 40, color: "#ffb300" }} />,
@@ -47,7 +46,7 @@ const plans = [
   },
   {
     title: "Yearly",
-    price: "$500 / year",
+    price: "$500/year",
     description: "Get the best value with annual billing.",
     details: ["Unlimited uploads", "Priority AI processing", "Save 15% compared to monthly plan"],
     icon: <Diamond sx={{ fontSize: 40, color: "#9c27b0" }} />,
@@ -63,8 +62,8 @@ function Billing() {
   const videoLength = location.state?.videoLength || 0;
 
   const handleSelectPlan = (plan) => {
-    navigate(`${plan.router}?title=${encodeURIComponent(plan.title)}`, {
-      state: { plan, videoLength },
+    navigate(`${plan.router}?title=${encodeURIComponent(plan.title)}&minutes=${videoLength}`, {
+      state: { plan },
     });
   };
 
@@ -106,17 +105,12 @@ function Billing() {
                   <Typography variant="h6" sx={{ fontWeight: "bold" }}>
                     {plan.title}
                   </Typography>
-                  <Typography variant="h4" sx={{ mt: 1, mb: 0.5, fontWeight: "bold" }}>
+                  <Typography variant="h4" sx={{ mt: 1, fontWeight: "bold" }}>
                     {plan.price}
                   </Typography>
                   {plan.title === "Pay-as-you-go" && videoLength > 0 && (
-                    <Typography variant="subtitle1" sx={{ mt: 1, fontWeight: "bold" }}>
-                      Estimated Charge: ${Math.max(videoLength, 5)} for {videoLength} min
-                    </Typography>
-                  )}
-                  {plan.subtitle && (
-                    <Typography variant="subtitle2" color="text.secondary">
-                      {plan.subtitle}
+                    <Typography variant="body2" sx={{ mt: 1 }}>
+                      Estimated: ${Math.max(videoLength, 5)} for {videoLength} min Video
                     </Typography>
                   )}
                   <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>

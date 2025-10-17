@@ -7,6 +7,7 @@ class User(AbstractUser):
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
+    video_credits = models.IntegerField(default=0)
 
 class DropboxUpload(models.Model):
     userId = models.IntegerField(default=0)
