@@ -19,7 +19,7 @@ from django.urls import path, include
 from api.views import hello
 from django.conf import settings
 from django.conf.urls.static import static
-from api.views import signup, signin, refresh_token, logout_view, admin_signin, generate_dropbox_token, save_upload_info, list_videos, delete_video, transcribe_video, check_transcription_status, keyword_detection, fetch_stock_videos, get_clip_lists, save_stock_clips, user_video_count
+from api.views import signup, signin, refresh_token, logout_view, admin_signin, generate_dropbox_token, save_upload_info, list_videos, delete_video, transcribe_video, check_transcription_status, keyword_detection, fetch_stock_videos, get_clip_lists, save_stock_clips, user_video_count, user_dashboard_list
 from payments.views import create_checkout_session, stripe_webhook, verify_session, get_active_plan
 
 urlpatterns = [
@@ -45,4 +45,5 @@ urlpatterns = [
     path("api/payment/webhook/", stripe_webhook),
     path("api/payment/verify-session/<str:session_id>/", verify_session),
     path("api/payment/get-active-plan/", get_active_plan),
+    path("api/admin-dashboard/", user_dashboard_list),
 ]

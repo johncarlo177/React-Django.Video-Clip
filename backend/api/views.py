@@ -14,6 +14,7 @@ from moviepy.video.io.VideoFileClip import VideoFileClip
 from .serializers import DropboxUploadSerializer
 from .models import User, DropboxUpload
 from payments.models import Payment 
+from django.db.models import Count, OuterRef, Subquery
 
 User = get_user_model()
 
@@ -619,3 +620,27 @@ def user_video_count(request):
     except Exception as e:
         print("Error fetching video count:", e)
         return Response({"error": str(e)}, status=500)
+    
+
+@api_view(['GET'])
+def user_dashboard_list(request):
+    # Count videos for each user
+    upload_counts = DropboxUpload.objects.values('userId').annotate(count=Count('id'))
+    upload_dict = {item['userId']: item['count'] for item in upload_counts}
+
+    # Get latest payment for each user
+    payments = Payment.objects.filter(user=OuterRef('pk')).order_by('-created_at')
+    users = User.objects.all().annotate(
+        latest_payment_status=Subquery(payments.values('status')[:1])
+    )
+
+    data = []
+    for user in users:
+        data.append({
+            'username': user.username,
+            'email': user.email,
+            'uploaded_count': upload_dict.get(user.id, 0),
+            'payment_status': user.latest_payment_status or 'No Payment'
+        })
+
+    return Response(data)

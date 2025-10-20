@@ -6,11 +6,11 @@
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/manage.py",
-      "args": ["runserver", "0.0.0.0:8000"], 
+      "args": ["runserver", "0.0.0.0:8000"],
       "django": true,
-      "justMyCode": true, 
+      "justMyCode": true,
       "env": {
-        "DJANGO_SETTINGS_MODULE": "myproject.settings" 
+        "DJANGO_SETTINGS_MODULE": "myproject.settings"
       }
     }
   ]
