@@ -63,16 +63,20 @@ def admin_signin(request):
 
     # Hardcoded admin credentials
     ADMIN_EMAIL = "admin@example.com"
-    ADMIN_PASSWORD = "admin123"
+    ADMIN_PASSWORD = "123456"
 
     if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
-        # Create a simple access token (no refresh)
-        token = AccessToken()
-        token["role"] = "admin"   # custom claim to mark admin
+        # Use or create a Django user record for admin
+        admin_user, created = User.objects.get_or_create(
+            username="admin",
+            defaults={"email": ADMIN_EMAIL, "is_staff": True, "is_superuser": True},
+        )
 
-        return Response({
-            "access": str(token),
-        }, status=status.HTTP_200_OK)
+        # Create a valid JWT access token for that user
+        token = AccessToken.for_user(admin_user)
+        token["role"] = "admin"  # Add custom claim if needed
+
+        return Response({"access": str(token)}, status=status.HTTP_200_OK)
 
     return Response({"error": "Invalid admin credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -106,22 +110,21 @@ def refresh_token(request):
 
 # Logout
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])  # optional: or keep IsAuthenticated
 def logout_view(request):
-    """
-    Logout the user by blacklisting their refresh token.
-    Expects a payload: { "refresh": "<refresh_token>" }
-    """
     refresh_token = request.data.get("refresh")
+
+    # if no token, just return success
     if not refresh_token:
-        return Response({"error": "Refresh token is required"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message": "No token found, session cleared"}, status=status.HTTP_200_OK)
 
     try:
         token = RefreshToken(refresh_token)
-        token.blacklist()  # requires 'rest_framework_simplejwt.token_blacklist' in INSTALLED_APPS
+        token.blacklist()
         return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
     
 # Get short_lived_token
 @api_view(["GET"])
@@ -179,9 +182,17 @@ def save_upload_info(request):
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def list_videos(request):
-    # Only videos with a dropbox_link
-    videos = DropboxUpload.objects.filter(dropbox_link__isnull=False).exclude(dropbox_link="").order_by('-uploaded_at')
+    videos = (
+        DropboxUpload.objects
+        .filter(
+            userId=request.user.id,
+            dropbox_link__isnull=False
+        )
+        .exclude(dropbox_link="")
+        .order_by('-uploaded_at')
+    )
     serializer = DropboxUploadSerializer(videos, many=True)
     return Response(serializer.data)
 

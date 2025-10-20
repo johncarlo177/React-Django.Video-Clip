@@ -53,14 +53,24 @@ function Cover() {
         email,
         password,
       });
-      const data = await response.data;
+
+      const data = response.data;
       console.log(data);
 
-      // Redirect to sign-in page and pass email/password
+      // Redirect to sign-in page with prefilled credentials
       navigate("/sign-in", { state: { email, password } });
     } catch (err) {
       console.error("Error during sign up:", err);
-      alert("Something went wrong. Please try again.");
+
+      if (err.response) {
+        if (err.response.data.error === "Email already exists") {
+          setErrors((prev) => ({ ...prev, email: "Email already exists" }));
+        } else {
+          alert("Something went wrong. Please try again.");
+        }
+      } else {
+        alert("Network error. Please check your connection.");
+      }
     }
   };
 
@@ -85,7 +95,7 @@ function Cover() {
           </MDTypography>
         </MDBox>
         <MDBox pt={4} pb={3} px={3}>
-          <MDBox component="form" role="form" onSubmit={handleSignup}>
+          <MDBox component="form" role="form" onSubmit={handleSignup} autoComplete="off">
             <MDInput
               type="text"
               label="Name"

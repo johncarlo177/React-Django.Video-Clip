@@ -53,17 +53,21 @@ function AdminBasic() {
         password,
       });
 
-      const data = await response.data;
+      const data = response.data;
 
       if (data.access) {
-        localStorage.setItem("admin-token", data.access);
+        localStorage.setItem("admin_token", data.access);
         navigate("/admin/dashboard");
       } else {
-        setFormError("Login failed: Invalid credentials.");
+        setFormError("Invalid email or password");
       }
     } catch (err) {
-      console.error(err);
-      setFormError("Login failed: Invalid credentials.");
+      if (err.response && err.response.status === 401) {
+        setFormError("Invalid email or password");
+      } else {
+        setFormError("Server error. Please try again later.");
+      }
+      console.error("Signin error:", err);
     }
   };
 

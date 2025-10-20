@@ -1,13 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import Card from "@mui/material/Card";
 import Switch from "@mui/material/Switch";
-
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDInput from "components/MDInput";
 import MDButton from "components/MDButton";
-
 import BasicLayout from "layouts/authentication/components/BasicLayout";
 import bgImage from "assets/images/bg-sign-in-basic.jpeg";
 import axiosInstance from "libs/axios";
@@ -16,11 +14,23 @@ function Basic() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Get from navigation state or query string
+  const queryParams = new URLSearchParams(location.search);
+  const queryEmail = queryParams.get("email");
+  const queryPassword = queryParams.get("password");
   const [email, setEmail] = useState(location.state?.email || "");
   const [password, setPassword] = useState(location.state?.password || "");
   const [errors, setErrors] = useState({}); // field validation errors
   const [formError, setFormError] = useState(""); // server error
   const [rememberMe, setRememberMe] = useState(false);
+
+  // Disable browser autofill
+  useEffect(() => {
+    const inputs = document.querySelectorAll("input");
+    inputs.forEach((input) => {
+      input.setAttribute("autocomplete", "off");
+    });
+  }, []);
 
   const validate = () => {
     const newErrors = {};
@@ -89,7 +99,7 @@ function Basic() {
           </MDTypography>
         </MDBox>
         <MDBox pt={4} pb={3} px={3}>
-          <MDBox component="form" role="form" onSubmit={handleSignin}>
+          <MDBox component="form" role="form" onSubmit={handleSignin} autoComplete="off">
             <MDInput
               type="email"
               label="Email"

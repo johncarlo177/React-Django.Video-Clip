@@ -28,11 +28,23 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const handleLogout = async () => {
     try {
       const refresh = localStorage.getItem("refresh_token");
-      await axiosInstance.post("/api/logout/", { refresh });
-      localStorage.clear();
-      window.location.href = "/sign-in";
+      const admin_token = localStorage.getItem("admin_token");
+
+      // If no refresh token (e.g., admin), just clear and redirect
+      if (admin_token) {
+        localStorage.clear();
+        window.location.href = "/admin/sign-in";
+        return;
+      }
+      if (refresh) {
+        await axiosInstance.post("/api/logout/", { refresh });
+        localStorage.clear();
+        window.location.href = "/sign-in";
+      }
     } catch (err) {
       console.error("Error during logout:", err);
+      localStorage.clear();
+      window.location.href = "/sign-in";
     }
   };
 

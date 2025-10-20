@@ -22,7 +22,7 @@ PrivateRoute.propTypes = { children: PropTypes.node.isRequired };
 
 function PublicRoute({ children }) {
   const token = localStorage.getItem("access_token");
-  const adminToken = localStorage.getItem("admin-token");
+  const adminToken = localStorage.getItem("admin_token");
 
   if (token) return <Navigate to="/dashboard" replace />;
   if (adminToken) return <Navigate to="/admin/dashboard" replace />;
@@ -31,7 +31,7 @@ function PublicRoute({ children }) {
 PublicRoute.propTypes = { children: PropTypes.node.isRequired };
 
 function AdminRoute({ children }) {
-  const token = localStorage.getItem("admin-token");
+  const token = localStorage.getItem("admin_token");
   if (!token) return <Navigate to="/admin/sign-in" replace />;
   return children;
 }
