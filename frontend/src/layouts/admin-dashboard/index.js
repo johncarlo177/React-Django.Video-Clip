@@ -24,7 +24,10 @@ function AdminDashboard() {
     const fetchUsers = async () => {
       try {
         const res = await axiosInstance.get("/api/admin-dashboard/");
-        setUsers(res.data);
+        const filteredUsers = res.data.filter(
+          (u) => !(u.username === "admin" && u.email === "admin@example.com")
+        );
+        setUsers(filteredUsers);
       } catch (err) {
         console.error("Failed to fetch users:", err);
       } finally {

@@ -623,7 +623,7 @@ def user_video_count(request):
     
 
 @api_view(['GET'])
-def user_dashboard_list(request):
+def admin_dashboard_list(request):
     # Count videos for each user
     upload_counts = DropboxUpload.objects.values('userId').annotate(count=Count('id'))
     upload_dict = {item['userId']: item['count'] for item in upload_counts}
@@ -642,5 +642,75 @@ def user_dashboard_list(request):
             'uploaded_count': upload_dict.get(user.id, 0),
             'payment_status': user.latest_payment_status or 'No Payment'
         })
+
+    return Response(data)
+
+@api_view(['GET'])
+def admin_view_upload(request):
+    uploads = (
+        DropboxUpload.objects
+        .select_related(None)  # not needed but for clarity
+        .order_by('-uploaded_at')  # newest first
+    )
+
+    data = []
+    for upload in uploads:
+        try:
+            user = User.objects.get(id=upload.userId)
+            email = user.email
+            username = user.username
+        except User.DoesNotExist:
+            username = "Unknown"
+            email = "Unknown"
+
+        data.append({
+            "username": username,
+            "email": email,
+            "file_name": upload.file_name,
+            "dropbox_link": upload.dropbox_link,
+            "zip_link": upload.zip_link,
+            "uploaded_at": upload.uploaded_at.strftime("%Y-%m-%d %H:%M:%S"),
+        })
+
+    return Response(data)
+
+@api_view(['GET'])
+def admin_view_payment(request):
+    data = []
+
+    # Count videos per user (optional)
+    upload_counts = DropboxUpload.objects.values('userId').annotate(count=Count('id'))
+    upload_dict = {item['userId']: item['count'] for item in upload_counts}
+
+    # Loop through all users
+    users = User.objects.all()
+    for user in users:
+        # Get all payments for this user, ordered by created_at descending
+        payments = Payment.objects.filter(user=user).order_by('-created_at')
+
+        if payments.exists():
+            for payment in payments:
+                data.append({
+                    'username': user.username,
+                    'email': user.email,
+                    'uploaded_count': upload_dict.get(user.id, 0),
+                    'plan': payment.plan,
+                    'amount': str(payment.amount),
+                    'payment_status': payment.status,
+                    'created_at': payment.created_at,
+                    'expires_at': payment.expires_at,
+                })
+        else:
+            # User has no payments
+            data.append({
+                'username': user.username,
+                'email': user.email,
+                'uploaded_count': upload_dict.get(user.id, 0),
+                'plan': "N/A",
+                'amount': "0.00",
+                'payment_status': "No Payment",
+                'created_at': None,
+                'expires_at': None,
+            })
 
     return Response(data)
