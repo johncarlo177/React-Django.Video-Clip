@@ -1,3 +1,4 @@
+import LandingPage from "Landing";
 import Dashboard from "layouts/dashboard";
 import Upload from "layouts/upload";
 import Billing from "layouts/subscription";
@@ -16,6 +17,14 @@ import GetStockClips from "layouts/dashboard/components/GetStockClips";
 import Icon from "@mui/material/Icon";
 
 const routes = [
+  {
+    type: "collapse",
+    name: "Dashboard",
+    key: "dashboard",
+    route: "/",
+    component: <LandingPage />,
+    publicOnly: true,
+  },
   {
     type: "collapse",
     name: "Dashboard",

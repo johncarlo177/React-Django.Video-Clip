@@ -1,18 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-
-// @mui material components
 import Card from "@mui/material/Card";
-
-// Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDInput from "components/MDInput";
 import MDButton from "components/MDButton";
-
-// Authentication layout components
-import CoverLayout from "layouts/authentication/components/CoverLayout";
-import bgImage from "assets/images/bg-sign-up-cover.jpeg";
+import BasicLayout from "layouts/authentication/components/BasicLayout";
 import axiosInstance from "libs/axios";
 
 function Cover() {
@@ -77,7 +70,7 @@ function Cover() {
   const helperTextProps = { sx: { color: "red", mt: 1 } };
 
   return (
-    <CoverLayout image={bgImage}>
+    <BasicLayout image="/assets/auth.jpg">
       <Card>
         <MDBox
           variant="gradient"
@@ -167,7 +160,7 @@ function Cover() {
           </MDBox>
         </MDBox>
       </Card>
-    </CoverLayout>
+    </BasicLayout>
   );
 }
 

@@ -121,17 +121,6 @@ export default function App() {
     <ThemeProvider theme={darkMode ? themeDark : theme}>
       <CssBaseline />
 
-      {layout === "dashboard" && !pathname.startsWith("/admin") && (
-        <Sidenav
-          color={sidenavColor}
-          brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
-          brandName="Video Clip"
-          routes={userRoutes}
-          onMouseEnter={handleOnMouseEnter}
-          onMouseLeave={handleOnMouseLeave}
-        />
-      )}
-
       {layout === "dashboard" && pathname.startsWith("/admin") && (
         <Sidenav
           color={sidenavColor}
@@ -142,6 +131,19 @@ export default function App() {
           onMouseLeave={handleOnMouseLeave}
         />
       )}
+
+      {layout === "dashboard" &&
+        !pathname.startsWith("/admin") &&
+        !["/", "/sign-in", "/sign-up"].includes(pathname) && (
+          <Sidenav
+            color={sidenavColor}
+            brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
+            brandName="Video Clip"
+            routes={userRoutes}
+            onMouseEnter={handleOnMouseEnter}
+            onMouseLeave={handleOnMouseLeave}
+          />
+        )}
 
       {layout === "vr" && <Configurator />}
 

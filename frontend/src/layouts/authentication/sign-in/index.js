@@ -7,7 +7,6 @@ import MDTypography from "components/MDTypography";
 import MDInput from "components/MDInput";
 import MDButton from "components/MDButton";
 import BasicLayout from "layouts/authentication/components/BasicLayout";
-import bgImage from "assets/images/bg-sign-in-basic.jpeg";
 import axiosInstance from "libs/axios";
 
 function Basic() {
@@ -81,7 +80,7 @@ function Basic() {
   const handleSetRememberMe = () => setRememberMe(!rememberMe);
 
   return (
-    <BasicLayout image={bgImage}>
+    <BasicLayout image="/assets/auth.jpg">
       <Card>
         <MDBox
           variant="gradient"
