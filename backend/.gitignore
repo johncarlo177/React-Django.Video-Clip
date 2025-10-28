@@ -9,7 +9,7 @@ media/  # Or whatever your MEDIA_ROOT is
 static_collected/ # If using collectstatic to a separate directory
 
 # Virtual Environment
-.env/
+.env
 venv/
 env/
 
