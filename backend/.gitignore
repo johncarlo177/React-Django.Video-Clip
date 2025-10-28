@@ -1,1 +1,31 @@
-venv
+# Django-specific files
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+media/  # Or whatever your MEDIA_ROOT is
+static_collected/ # If using collectstatic to a separate directory
+
+# Virtual Environment
+.env/
+venv/
+env/
+
+# IDE-specific files (e.g., PyCharm)
+.idea/
+*.iml
+.vscode/
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Other files
+.coverage
+.tox/
+.eggs/
+build/
+dist/
+*.egg-info/
