@@ -83,9 +83,9 @@ function ViewUploads() {
                         <Button
                           variant="outlined"
                           size="small"
-                          color="primary"
                           href={u.dropbox_link}
                           target="_blank"
+                          sx={{ color: "#000", fontWeight: "100" }}
                         >
                           View File
                         </Button>
@@ -98,9 +98,9 @@ function ViewUploads() {
                         <Button
                           variant="outlined"
                           size="small"
-                          color="secondary"
                           href={u.zip_link}
                           target="_blank"
+                          sx={{ color: "#000", fontWeight: "100" }}
                         >
                           Download ZIP
                         </Button>
