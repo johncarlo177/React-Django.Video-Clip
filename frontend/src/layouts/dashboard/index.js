@@ -4,17 +4,25 @@ import {
   TableBody,
   TableCell,
   TableContainer,
+  TableHead,
   TableRow,
   Avatar,
   IconButton,
-  Paper,
-  Typography,
+  Chip,
+  Tooltip,
+  Card,
+  Grid,
 } from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import VideoLibraryIcon from "@mui/icons-material/VideoLibrary";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
+import MDBox from "components/MDBox";
+import MDTypography from "components/MDTypography";
+import MDButton from "components/MDButton";
 import axiosInstance from "libs/axios";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -91,82 +99,476 @@ function Dashboard() {
     });
   };
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
-      <Paper sx={{ p: 3, mt: 4 }}>
-        <Typography variant="h5" sx={{ mb: 3, fontWeight: "bold" }}>
-          Uploaded Videos
-        </Typography>
-        <TableContainer>
-          <Table>
-            <TableBody>
-              {videos.length > 0 ? (
-                videos.map((video) => (
-                  <TableRow key={video.id}>
-                    <TableCell>
-                      <Avatar
-                        variant="rounded"
-                        sx={{ cursor: "pointer" }}
-                        onClick={() => handleWatch(video.dropbox_link)}
-                        title="Play Video"
+      <MDBox mt={4} mb={4}>
+        {/* Header Section */}
+        <MDBox
+          variant="gradient"
+          bgColor="info"
+          borderRadius="lg"
+          coloredShadow="info"
+          p={3}
+          mb={4}
+          sx={{
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          }}
+        >
+          <MDBox display="flex" alignItems="center" gap={2}>
+            <VideoLibraryIcon sx={{ fontSize: 40, color: "white" }} />
+            <MDBox>
+              <MDTypography variant="h4" fontWeight="bold" color="white" mb={0.5}>
+                My Videos
+              </MDTypography>
+              <MDTypography variant="body2" color="white" opacity={0.9}>
+                Manage and process your uploaded videos
+              </MDTypography>
+            </MDBox>
+          </MDBox>
+        </MDBox>
+
+        {/* Videos Section - Responsive */}
+        {videos.length > 0 ? (
+          <>
+            {/* Desktop Table View */}
+            <MDBox
+              sx={{
+                display: { xs: "none", md: "block" },
+                borderRadius: 3,
+                boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                bgColor: "white",
+                overflow: "hidden",
+              }}
+            >
+              <TableContainer>
+                <Table>
+                  <TableBody>
+                    {videos.map((video, index) => (
+                      <TableRow
+                        key={video.id}
+                        sx={{
+                          "&:hover": {
+                            backgroundColor: "rgba(102, 126, 234, 0.05)",
+                          },
+                          transition: "background-color 0.2s ease",
+                          borderBottom:
+                            index < videos.length - 1 ? "1px solid rgba(0,0,0,0.08)" : "none",
+                        }}
                       >
-                        <PlayArrowIcon />
-                      </Avatar>
-                    </TableCell>
-                    <TableCell>{video.file_name}</TableCell>
-                    <TableCell>{new Date(video.uploaded_at).toLocaleString()}</TableCell>
-                    <TableCell>
-                      <IconButton
-                        color="dark"
-                        onClick={() => handleDownload(video.dropbox_link)}
-                        title="Download Uploaded Video"
-                      >
-                        <CloudDownloadIcon />
-                      </IconButton>
-                    </TableCell>
-                    <TableCell>
-                      <IconButton
-                        color="dark"
-                        onClick={() => handleOpenDeleteModal(video.id)}
-                        title="Delete Video"
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                    <TableCell>
-                      <IconButton
-                        color="dark"
-                        onClick={() => handleGetStockClips(video)}
-                        title="Get Stock Clips"
-                      >
-                        <SettingsIcon />
-                      </IconButton>
-                    </TableCell>
-                    <TableCell>
-                      {video.zip_link && (
-                        <IconButton
-                          color="dark"
-                          onClick={() => handleDownload(video.zip_link)}
-                          title="Download Stock Clips ZIP"
+                        <TableCell align="center">
+                          <Tooltip title="Play Video">
+                            <Avatar
+                              variant="rounded"
+                              sx={{
+                                cursor: "pointer",
+                                bgcolor: "info.main",
+                                width: 48,
+                                height: 48,
+                                "&:hover": {
+                                  bgcolor: "info.dark",
+                                  transform: "scale(1.1)",
+                                },
+                                transition: "all 0.2s ease",
+                              }}
+                              onClick={() => handleWatch(video.dropbox_link)}
+                            >
+                              <PlayArrowIcon />
+                            </Avatar>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell>
+                          <MDTypography
+                            variant="body2"
+                            fontWeight="medium"
+                            color="text"
+                            sx={{
+                              maxWidth: "400px",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {video.file_name}
+                          </MDTypography>
+                        </TableCell>
+                        <TableCell>
+                          <MDBox display="flex" alignItems="center" gap={1}>
+                            <AccessTimeIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+                            <MDTypography variant="caption" color="text" opacity={0.7}>
+                              {formatDate(video.uploaded_at)}
+                            </MDTypography>
+                          </MDBox>
+                        </TableCell>
+                        <TableCell align="center">
+                          {video.zip_link ? (
+                            <Chip
+                              label="Clips Ready"
+                              color="success"
+                              size="small"
+                              sx={{ fontWeight: 600 }}
+                            />
+                          ) : (
+                            <Chip
+                              label="Processing"
+                              color="warning"
+                              size="small"
+                              sx={{ fontWeight: 600 }}
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell align="center">
+                          <MDBox display="flex" gap={1} justifyContent="center" flexWrap="wrap">
+                            <Tooltip title="Download Video">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleDownload(video.dropbox_link)}
+                                sx={{
+                                  bgcolor: "success.main",
+                                  color: "white",
+                                  "& svg": {
+                                    color: "white",
+                                  },
+                                  "&:hover": {
+                                    bgcolor: "success.dark",
+                                    transform: "scale(1.1)",
+                                  },
+                                  transition: "all 0.2s ease",
+                                }}
+                              >
+                                <CloudDownloadIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+
+                            <Tooltip title="Get Stock Clips">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleGetStockClips(video)}
+                                sx={{
+                                  bgcolor: "info.main",
+                                  color: "white",
+                                  "& svg": {
+                                    color: "white",
+                                  },
+                                  "&:hover": {
+                                    bgcolor: "info.dark",
+                                    transform: "scale(1.1)",
+                                  },
+                                  transition: "all 0.2s ease",
+                                }}
+                              >
+                                <SettingsIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+
+                            {video.zip_link && (
+                              <Tooltip title="Download Clips ZIP">
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleDownload(video.zip_link)}
+                                  sx={{
+                                    bgcolor: "warning.main",
+                                    color: "white",
+                                    "& svg": {
+                                      color: "white",
+                                    },
+                                    "&:hover": {
+                                      bgcolor: "warning.dark",
+                                      transform: "scale(1.1)",
+                                    },
+                                    transition: "all 0.2s ease",
+                                  }}
+                                >
+                                  <FileDownloadIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+
+                            <Tooltip title="Delete Video">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleOpenDeleteModal(video.id)}
+                                sx={{
+                                  bgcolor: "error.main",
+                                  color: "white",
+                                  "& svg": {
+                                    color: "white",
+                                  },
+                                  "&:hover": {
+                                    bgcolor: "error.dark",
+                                    transform: "scale(1.1)",
+                                  },
+                                  transition: "all 0.2s ease",
+                                }}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </MDBox>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </MDBox>
+
+            {/* Mobile Card View */}
+            <MDBox
+              sx={{
+                display: { xs: "block", md: "none" },
+              }}
+            >
+              <Grid container spacing={2}>
+                {videos.map((video) => (
+                  <Grid item xs={12} key={video.id}>
+                    <Card
+                      sx={{
+                        borderRadius: 3,
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+                        transition: "all 0.3s ease",
+                        "&:hover": {
+                          transform: "translateY(-4px)",
+                          boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
+                        },
+                      }}
+                    >
+                      <MDBox p={3}>
+                        {/* Video Header */}
+                        <MDBox
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="space-between"
+                          mb={2}
                         >
-                          <FileDownloadIcon />
-                        </IconButton>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} align="center">
-                    No videos uploaded yet.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
+                          <Tooltip title="Play Video">
+                            <Avatar
+                              variant="rounded"
+                              sx={{
+                                cursor: "pointer",
+                                bgcolor: "info.main",
+                                width: 56,
+                                height: 56,
+                                "&:hover": {
+                                  bgcolor: "info.dark",
+                                  transform: "scale(1.1)",
+                                },
+                                transition: "all 0.2s ease",
+                              }}
+                              onClick={() => handleWatch(video.dropbox_link)}
+                            >
+                              <PlayArrowIcon />
+                            </Avatar>
+                          </Tooltip>
+                          {video.zip_link ? (
+                            <Chip
+                              label="Clips Ready"
+                              color="success"
+                              size="small"
+                              sx={{ fontWeight: 600 }}
+                            />
+                          ) : (
+                            <Chip
+                              label="Processing"
+                              color="warning"
+                              size="small"
+                              sx={{ fontWeight: 600 }}
+                            />
+                          )}
+                        </MDBox>
+
+                        {/* File Name */}
+                        <MDTypography
+                          variant="h6"
+                          fontWeight="bold"
+                          color="text"
+                          mb={1.5}
+                          sx={{
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                          }}
+                        >
+                          {video.file_name}
+                        </MDTypography>
+
+                        {/* Upload Date */}
+                        <MDBox display="flex" alignItems="center" gap={1} mb={2}>
+                          <AccessTimeIcon sx={{ fontSize: 18, color: "text.secondary" }} />
+                          <MDTypography variant="caption" color="text" opacity={0.7}>
+                            {formatDate(video.uploaded_at)}
+                          </MDTypography>
+                        </MDBox>
+
+                        {/* Action Buttons */}
+                        <MDBox display="flex" gap={1} flexWrap="wrap" justifyContent="center">
+                          <Tooltip title="Play Video">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleWatch(video.dropbox_link)}
+                              sx={{
+                                bgcolor: "info.main",
+                                color: "white",
+                                "& svg": {
+                                  color: "white",
+                                },
+                                "&:hover": {
+                                  bgcolor: "info.dark",
+                                  transform: "scale(1.1)",
+                                },
+                                transition: "all 0.2s ease",
+                              }}
+                            >
+                              <PlayArrowIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+
+                          <Tooltip title="Download Video">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleDownload(video.dropbox_link)}
+                              sx={{
+                                bgcolor: "success.main",
+                                color: "white",
+                                "& svg": {
+                                  color: "white",
+                                },
+                                "&:hover": {
+                                  bgcolor: "success.dark",
+                                  transform: "scale(1.1)",
+                                },
+                                transition: "all 0.2s ease",
+                              }}
+                            >
+                              <CloudDownloadIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+
+                          <Tooltip title="Get Stock Clips">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleGetStockClips(video)}
+                              sx={{
+                                bgcolor: "info.main",
+                                color: "white",
+                                "& svg": {
+                                  color: "white",
+                                },
+                                "&:hover": {
+                                  bgcolor: "info.dark",
+                                  transform: "scale(1.1)",
+                                },
+                                transition: "all 0.2s ease",
+                              }}
+                            >
+                              <SettingsIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+
+                          {video.zip_link && (
+                            <Tooltip title="Download Clips ZIP">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleDownload(video.zip_link)}
+                                sx={{
+                                  bgcolor: "warning.main",
+                                  color: "white",
+                                  "& svg": {
+                                    color: "white",
+                                  },
+                                  "&:hover": {
+                                    bgcolor: "warning.dark",
+                                    transform: "scale(1.1)",
+                                  },
+                                  transition: "all 0.2s ease",
+                                }}
+                              >
+                                <FileDownloadIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+
+                          <Tooltip title="Delete Video">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleOpenDeleteModal(video.id)}
+                              sx={{
+                                bgcolor: "error.main",
+                                color: "white",
+                                "& svg": {
+                                  color: "white",
+                                },
+                                "&:hover": {
+                                  bgcolor: "error.dark",
+                                  transform: "scale(1.1)",
+                                },
+                                transition: "all 0.2s ease",
+                              }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </MDBox>
+                      </MDBox>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </MDBox>
+          </>
+        ) : (
+          <MDBox
+            sx={{
+              textAlign: "center",
+              py: 8,
+              px: 3,
+              borderRadius: 3,
+              boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+              bgColor: "white",
+            }}
+          >
+            <VideoLibraryIcon
+              sx={{
+                fontSize: 80,
+                color: "text.secondary",
+                opacity: 0.3,
+                mb: 2,
+              }}
+            />
+            <MDTypography variant="h5" fontWeight="medium" color="text" mb={1}>
+              No Videos Yet
+            </MDTypography>
+            <MDTypography variant="body2" color="text" opacity={0.7} mb={3}>
+              Upload your first video to get started
+            </MDTypography>
+            <MDButton
+              variant="gradient"
+              color="info"
+              onClick={() => navigate("/upload")}
+              sx={{
+                px: 4,
+                py: 1.5,
+              }}
+            >
+              Upload Video
+            </MDButton>
+          </MDBox>
+        )}
+      </MDBox>
+
       <DeleteVideo
         open={openDeleteModal}
         onClose={handleCloseDeleteModal}
