@@ -534,8 +534,30 @@ def save_stock_clips(request):
 
     try:
         upload = DropboxUpload.objects.get(id=video_id)
-        video_name = upload.file_name.split(".")[0]
-        zip_filename = f"{video_name}_stock_clips.zip"
+        # Extract original filename from upload.file_name (format: username.userId-filename.ext)
+        # Remove the username.userId- prefix to get the original filename
+        file_name = upload.file_name
+        if "." in file_name and "-" in file_name:
+            # Format: username.userId-filename.ext
+            parts = file_name.split(".", 1)  # Split into ['username', 'userId-filename.ext']
+            if len(parts) == 2:
+                remaining = parts[1]  # 'userId-filename.ext'
+                if "-" in remaining:
+                    original_filename = remaining.split("-", 1)[1]  # 'filename.ext'
+                    # Remove extension and add .zip
+                    filename_without_ext = original_filename.rsplit(".", 1)[0] if "." in original_filename else original_filename
+                else:
+                    filename_without_ext = remaining.rsplit(".", 1)[0] if "." in remaining else remaining
+            else:
+                filename_without_ext = file_name.rsplit(".", 1)[0] if "." in file_name else file_name
+        else:
+            # Fallback: just remove extension
+            filename_without_ext = file_name.rsplit(".", 1)[0] if "." in file_name else file_name
+        
+        # Format: username.userId-filename.zip
+        username = upload.username or "user"
+        user_id = upload.userId or 0
+        zip_filename = f"{username}.{user_id}-{filename_without_ext}.zip"
 
         # ✅ Create ZIP in memory
         zip_buffer = io.BytesIO()

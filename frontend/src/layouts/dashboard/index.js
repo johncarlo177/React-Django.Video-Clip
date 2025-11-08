@@ -217,26 +217,26 @@ function Dashboard() {
                               label="Clips Ready"
                               color="success"
                               size="small"
-                              sx={{ fontWeight: 600 }}
+                              sx={{ fontWeight: 600, color: "white !important" }}
                             />
                           ) : (
                             <Chip
                               label="Processing"
                               color="warning"
                               size="small"
-                              sx={{ fontWeight: 600 }}
+                              sx={{ fontWeight: 600, color: "white !important" }}
                             />
                           )}
                         </TableCell>
                         <TableCell align="center">
-                          <MDBox display="flex" gap={1} justifyContent="center" flexWrap="wrap">
+                          <MDBox display="flex" gap={1} justifyContent="left" flexWrap="wrap">
                             <Tooltip title="Download Video">
                               <IconButton
                                 size="small"
                                 onClick={() => handleDownload(video.dropbox_link)}
                                 sx={{
                                   bgcolor: "success.main",
-                                  color: "white",
+                                  color: "white !important",
                                   "& svg": {
                                     color: "white",
                                   },
@@ -257,7 +257,7 @@ function Dashboard() {
                                 onClick={() => handleGetStockClips(video)}
                                 sx={{
                                   bgcolor: "info.main",
-                                  color: "white",
+                                  color: "white !important",
                                   "& svg": {
                                     color: "white",
                                   },
@@ -272,6 +272,27 @@ function Dashboard() {
                               </IconButton>
                             </Tooltip>
 
+                            <Tooltip title="Delete Video">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleOpenDeleteModal(video.id)}
+                                sx={{
+                                  bgcolor: "error.main",
+                                  color: "white !important",
+                                  "& svg": {
+                                    color: "white",
+                                  },
+                                  "&:hover": {
+                                    bgcolor: "error.dark",
+                                    transform: "scale(1.1)",
+                                  },
+                                  transition: "all 0.2s ease",
+                                }}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+
                             {video.zip_link && (
                               <Tooltip title="Download Clips ZIP">
                                 <IconButton
@@ -279,7 +300,7 @@ function Dashboard() {
                                   onClick={() => handleDownload(video.zip_link)}
                                   sx={{
                                     bgcolor: "warning.main",
-                                    color: "white",
+                                    color: "white !important",
                                     "& svg": {
                                       color: "white",
                                     },
@@ -294,27 +315,6 @@ function Dashboard() {
                                 </IconButton>
                               </Tooltip>
                             )}
-
-                            <Tooltip title="Delete Video">
-                              <IconButton
-                                size="small"
-                                onClick={() => handleOpenDeleteModal(video.id)}
-                                sx={{
-                                  bgcolor: "error.main",
-                                  color: "white",
-                                  "& svg": {
-                                    color: "white",
-                                  },
-                                  "&:hover": {
-                                    bgcolor: "error.dark",
-                                    transform: "scale(1.1)",
-                                  },
-                                  transition: "all 0.2s ease",
-                                }}
-                              >
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
                           </MDBox>
                         </TableCell>
                       </TableRow>
@@ -376,14 +376,14 @@ function Dashboard() {
                               label="Clips Ready"
                               color="success"
                               size="small"
-                              sx={{ fontWeight: 600 }}
+                              sx={{ fontWeight: 600, color: "white !important" }}
                             />
                           ) : (
                             <Chip
                               label="Processing"
                               color="warning"
                               size="small"
-                              sx={{ fontWeight: 600 }}
+                              sx={{ fontWeight: 600, color: "white !important" }}
                             />
                           )}
                         </MDBox>
