@@ -63,9 +63,12 @@ function Basic() {
 
   const handleSignin = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
     setFormError("");
 
-    if (!validate()) return;
+    if (!validate()) {
+      return false;
+    }
 
     setLoading(true);
 
@@ -94,9 +97,16 @@ function Basic() {
       }
     } catch (err) {
       console.error(err);
-      setFormError("Login failed: Invalid credentials.");
+      const errorMessage =
+        err.response?.data?.detail ||
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        "Login failed: Invalid credentials.";
+      setFormError(errorMessage);
       setLoading(false);
     }
+
+    return false;
   };
 
   const handleSetRememberMe = () => setRememberMe(!rememberMe);
@@ -142,7 +152,14 @@ function Basic() {
         </MDBox>
 
         <MDBox pt={4} pb={4} px={4}>
-          <MDBox component="form" role="form" onSubmit={handleSignin} autoComplete="off">
+          <MDBox
+            component="form"
+            role="form"
+            onSubmit={handleSignin}
+            autoComplete="off"
+            noValidate
+            sx={{ "& .MuiFormControl-root": { width: "100%" } }}
+          >
             <MDBox mb={3}>
               <MDInput
                 type="email"
