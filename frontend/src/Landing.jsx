@@ -118,7 +118,7 @@ function LandingPage() {
             <MDBox display="flex" alignItems="center" gap={1}>
               <VideoLibraryIcon sx={{ fontSize: 32, color: "white !important" }} />
               <MDTypography variant="h5" fontWeight="bold" color="white">
-                Auto Cliper
+                Auto Clipper
               </MDTypography>
             </MDBox>
             <MDBox display="flex" gap={2}>
@@ -257,7 +257,7 @@ function LandingPage() {
                   textShadow: "0 2px 20px rgba(0,0,0,0.3)",
                 }}
               >
-                Welcome to Video Auto Cliper
+                Welcome to Video Auto Clipper
               </MDTypography>
 
               <MDTypography
