@@ -1,7 +1,19 @@
 import axios from "axios";
 
+// Get base URL from environment variable with fallback
+const getBaseURL = () => {
+  const apiUrl = process.env.REACT_APP_API_URL;
+  if (!apiUrl) {
+    console.error("REACT_APP_API_URL is not set. Please configure it in your environment variables.");
+    // Return empty string to use relative URLs as fallback
+    return "";
+  }
+  // Ensure baseURL doesn't end with a slash (axios handles it)
+  return apiUrl.replace(/\/$/, "");
+};
+
 const axiosInstance = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
+  baseURL: getBaseURL(),
   headers: {
     "Content-Type": "application/json",
   },
@@ -38,8 +50,10 @@ axiosInstance.interceptors.response.use(
         }
 
         // Call refresh token API
+        const baseURL = getBaseURL();
+        const refreshUrl = baseURL ? `${baseURL}/api/token/refresh/` : "/api/token/refresh/";
         const response = await axios.post(
-          `${process.env.REACT_APP_API_URL}/api/token/refresh/`,
+          refreshUrl,
           { refresh: refreshToken },
           { headers: { "Content-Type": "application/json" } }
         );
