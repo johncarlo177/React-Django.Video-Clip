@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import Card from "@mui/material/Card";
 import Switch from "@mui/material/Switch";
+import CircularProgress from "@mui/material/CircularProgress";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDInput from "components/MDInput";
@@ -17,11 +18,19 @@ function Basic() {
   const queryParams = new URLSearchParams(location.search);
   const queryEmail = queryParams.get("email");
   const queryPassword = queryParams.get("password");
-  const [email, setEmail] = useState(location.state?.email || "");
-  const [password, setPassword] = useState(location.state?.password || "");
+
+  // Load remembered email from localStorage if it exists
+  const getRememberedEmail = () => {
+    const rememberedEmail = localStorage.getItem("remembered_email");
+    return rememberedEmail || "";
+  };
+
+  const [email, setEmail] = useState(location.state?.email || queryEmail || getRememberedEmail());
+  const [password, setPassword] = useState(location.state?.password || queryPassword || "");
   const [errors, setErrors] = useState({}); // field validation errors
   const [formError, setFormError] = useState(""); // server error
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(!!localStorage.getItem("remembered_email"));
+  const [loading, setLoading] = useState(false);
 
   // Disable browser autofill
   useEffect(() => {
@@ -56,6 +65,8 @@ function Basic() {
 
     if (!validate()) return;
 
+    setLoading(true);
+
     try {
       const response = await axiosInstance.post("/api/signin/", {
         email,
@@ -67,13 +78,23 @@ function Basic() {
       if (data.access && data.refresh) {
         localStorage.setItem("access_token", data.access);
         localStorage.setItem("refresh_token", data.refresh);
+
+        // Handle "Remember me" functionality
+        if (rememberMe) {
+          localStorage.setItem("remembered_email", email);
+        } else {
+          localStorage.removeItem("remembered_email");
+        }
+
         navigate("/dashboard");
       } else {
         setFormError("Login failed: Invalid credentials.");
+        setLoading(false);
       }
     } catch (err) {
       console.error(err);
       setFormError("Login failed: Invalid credentials.");
+      setLoading(false);
     }
   };
 
@@ -146,8 +167,15 @@ function Basic() {
             )}
 
             <MDBox mt={2} mb={1}>
-              <MDButton type="submit" variant="gradient" color="info" fullWidth>
-                Sign In
+              <MDButton type="submit" variant="gradient" color="info" fullWidth disabled={loading}>
+                {loading ? (
+                  <MDBox display="flex" alignItems="center" gap={1}>
+                    <CircularProgress size={20} color="inherit" />
+                    <span>Signing In...</span>
+                  </MDBox>
+                ) : (
+                  "Sign In"
+                )}
               </MDButton>
             </MDBox>
             <MDBox mt={3} mb={1} textAlign="center">

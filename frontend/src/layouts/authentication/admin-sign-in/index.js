@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import Card from "@mui/material/Card";
 import Switch from "@mui/material/Switch";
+import CircularProgress from "@mui/material/CircularProgress";
 
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -21,6 +22,7 @@ function AdminBasic() {
   const [errors, setErrors] = useState({}); // field validation errors
   const [formError, setFormError] = useState(""); // server error
   const [rememberMe, setRememberMe] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const validate = () => {
     const newErrors = {};
@@ -47,6 +49,8 @@ function AdminBasic() {
 
     if (!validate()) return;
 
+    setLoading(true);
+
     try {
       const response = await axiosInstance.post("/api/admin-signin/", {
         email,
@@ -60,6 +64,7 @@ function AdminBasic() {
         navigate("/admin/dashboard");
       } else {
         setFormError("Invalid email or password");
+        setLoading(false);
       }
     } catch (err) {
       if (err.response && err.response.status === 401) {
@@ -68,6 +73,7 @@ function AdminBasic() {
         setFormError("Server error. Please try again later.");
       }
       console.error("Signin error:", err);
+      setLoading(false);
     }
   };
 
@@ -140,8 +146,15 @@ function AdminBasic() {
             )}
 
             <MDBox mt={2} mb={1}>
-              <MDButton type="submit" variant="gradient" color="info" fullWidth>
-                Sign In
+              <MDButton type="submit" variant="gradient" color="info" fullWidth disabled={loading}>
+                {loading ? (
+                  <MDBox display="flex" alignItems="center" gap={1}>
+                    <CircularProgress size={20} color="inherit" />
+                    <span>Signing In...</span>
+                  </MDBox>
+                ) : (
+                  "Sign In"
+                )}
               </MDButton>
             </MDBox>
           </MDBox>

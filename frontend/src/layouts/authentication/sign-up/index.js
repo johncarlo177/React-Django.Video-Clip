@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Card from "@mui/material/Card";
+import CircularProgress from "@mui/material/CircularProgress";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDInput from "components/MDInput";
@@ -14,6 +15,7 @@ function Cover() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -40,6 +42,8 @@ function Cover() {
 
     if (!validate()) return;
 
+    setLoading(true);
+
     try {
       const response = await axiosInstance.post("/api/signup/", {
         name,
@@ -64,6 +68,7 @@ function Cover() {
       } else {
         alert("Network error. Please check your connection.");
       }
+      setLoading(false);
     }
   };
 
@@ -138,10 +143,18 @@ function Cover() {
               FormHelperTextProps={helperTextProps}
             />
             <MDBox mt={4} mb={1}>
-              <MDButton type="submit" variant="gradient" color="info" fullWidth>
-                sign Up
+              <MDButton type="submit" variant="gradient" color="info" fullWidth disabled={loading}>
+                {loading ? (
+                  <MDBox display="flex" alignItems="center" gap={1}>
+                    <CircularProgress size={20} color="inherit" />
+                    <span>Signing Up...</span>
+                  </MDBox>
+                ) : (
+                  "Sign Up"
+                )}
               </MDButton>
             </MDBox>
+
             <MDBox mt={3} mb={1} textAlign="center">
               <MDTypography variant="button" color="text">
                 Already have an account?{" "}
