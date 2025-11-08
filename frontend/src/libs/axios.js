@@ -4,7 +4,9 @@ import axios from "axios";
 const getBaseURL = () => {
   const apiUrl = process.env.REACT_APP_API_URL;
   if (!apiUrl) {
-    console.error("REACT_APP_API_URL is not set. Please configure it in your environment variables.");
+    console.error(
+      "REACT_APP_API_URL is not set. Please configure it in your environment variables."
+    );
     // Return empty string to use relative URLs as fallback
     return "";
   }
