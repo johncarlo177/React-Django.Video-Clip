@@ -151,7 +151,8 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "https://react-django-video-clip.vercel.app",
+    "https://react-django-video-clip.onrender.com",  # Use the actual domain
+    "http://localhost:3000",  # For local dev if you have it
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
