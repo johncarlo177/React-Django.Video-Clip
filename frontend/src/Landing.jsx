@@ -427,7 +427,7 @@ function LandingPage() {
                     <MDTypography variant="h5" fontWeight="bold" color="text" mb={2}>
                       {feature.title}
                     </MDTypography>
-                    <MDTypography variant="body1" color="white">
+                    <MDTypography variant="body1" color="white" fontSize="1rem">
                       {feature.description}
                     </MDTypography>
                   </MDBox>
