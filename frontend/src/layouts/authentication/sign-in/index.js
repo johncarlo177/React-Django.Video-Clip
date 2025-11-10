@@ -8,6 +8,9 @@ import Fade from "@mui/material/Fade";
 import LoginIcon from "@mui/icons-material/Login";
 import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import IconButton from "@mui/material/IconButton";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDInput from "components/MDInput";
@@ -55,6 +58,7 @@ function Basic() {
   const [loading, setLoading] = useState(false);
   const [emailTouched, setEmailTouched] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const inputs = document.querySelectorAll("input");
@@ -341,7 +345,7 @@ function Basic() {
 
             <MDBox mb={3}>
               <MDInput
-                type="password"
+                type={showPassword ? "text" : "password"}
                 label="Password"
                 fullWidth
                 value={password}
@@ -361,6 +365,27 @@ function Basic() {
                           fontSize: 20,
                         }}
                       />
+                    </MDBox>
+                  ),
+                  endAdornment: (
+                    <MDBox sx={{ display: "flex", alignItems: "center", mr: 0.5 }}>
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                        size="small"
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                        aria-label="toggle password visibility"
+                      >
+                        {showPassword ? (
+                          <VisibilityOffIcon sx={{ fontSize: 20, color: "text.secondary" }} />
+                        ) : (
+                          <VisibilityIcon sx={{ fontSize: 20, color: "text.secondary" }} />
+                        )}
+                      </IconButton>
                     </MDBox>
                   ),
                 }}

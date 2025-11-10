@@ -10,6 +10,9 @@ import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import IconButton from "@mui/material/IconButton";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDInput from "components/MDInput";
@@ -28,6 +31,8 @@ function Cover() {
   const [emailTouched, setEmailTouched] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
   const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const navigate = useNavigate();
 
@@ -374,7 +379,7 @@ function Cover() {
 
             <MDBox mb={3}>
               <MDInput
-                type="password"
+                type={showPassword ? "text" : "password"}
                 label="Password"
                 fullWidth
                 value={password}
@@ -395,6 +400,23 @@ function Cover() {
                           fontSize: 20,
                         }}
                       />
+                    </MDBox>
+                  ),
+                  endAdornment: (
+                    <MDBox sx={{ display: "flex", alignItems: "center", mr: 0.5 }}>
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                        size="small"
+                        sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+                        aria-label="toggle password visibility"
+                      >
+                        {showPassword ? (
+                          <VisibilityOffIcon sx={{ fontSize: 20, color: "text.secondary" }} />
+                        ) : (
+                          <VisibilityIcon sx={{ fontSize: 20, color: "text.secondary" }} />
+                        )}
+                      </IconButton>
                     </MDBox>
                   ),
                 }}
@@ -452,7 +474,7 @@ function Cover() {
 
             <MDBox mb={3}>
               <MDInput
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
                 label="Confirm Password"
                 fullWidth
                 value={confirmPassword}
@@ -471,6 +493,27 @@ function Cover() {
                           fontSize: 20,
                         }}
                       />
+                    </MDBox>
+                  ),
+                  endAdornment: (
+                    <MDBox sx={{ display: "flex", alignItems: "center", mr: 0.5 }}>
+                      <IconButton
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        edge="end"
+                        size="small"
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                        aria-label="toggle confirm password visibility"
+                      >
+                        {showConfirmPassword ? (
+                          <VisibilityOffIcon sx={{ fontSize: 20, color: "text.secondary" }} />
+                        ) : (
+                          <VisibilityIcon sx={{ fontSize: 20, color: "text.secondary" }} />
+                        )}
+                      </IconButton>
                     </MDBox>
                   ),
                 }}
