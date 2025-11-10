@@ -34,6 +34,7 @@ function Basic() {
   const [formError, setFormError] = useState("");
   const [rememberMe, setRememberMe] = useState(!!localStorage.getItem("remembered_email"));
   const [loading, setLoading] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
 
   useEffect(() => {
     const inputs = document.querySelectorAll("input");
@@ -42,13 +43,55 @@ function Basic() {
     });
   }, []);
 
+  // Comprehensive email validation function
+  const validateEmail = (emailValue) => {
+    if (!emailValue) {
+      return "Email is required";
+    }
+
+    // Trim whitespace
+    const trimmedEmail = emailValue.trim();
+
+    // Basic format check
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      return "Please enter a valid email address";
+    }
+
+    // Check for common email format issues
+    if (trimmedEmail.includes("..")) {
+      return "Email cannot contain consecutive dots";
+    }
+
+    if (trimmedEmail.startsWith(".") || trimmedEmail.endsWith(".")) {
+      return "Email cannot start or end with a dot";
+    }
+
+    if (trimmedEmail.startsWith("@") || trimmedEmail.endsWith("@")) {
+      return "Email format is invalid";
+    }
+
+    // Check domain has at least one dot after @
+    const domainPart = trimmedEmail.split("@")[1];
+    if (!domainPart || !domainPart.includes(".")) {
+      return "Email domain is invalid";
+    }
+
+    // Check domain extension
+    const domainParts = domainPart.split(".");
+    if (domainParts.length < 2 || domainParts[domainParts.length - 1].length < 2) {
+      return "Email domain extension is invalid";
+    }
+
+    return null; // Valid email
+  };
+
   const validate = () => {
     const newErrors = {};
 
-    if (!email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Email is invalid";
+    const emailError = validateEmail(email);
+    if (emailError) {
+      newErrors.email = emailError;
     }
 
     if (!password) {
@@ -59,6 +102,41 @@ function Basic() {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  // Real-time email validation
+  const handleEmailChange = (e) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+    setFormError(""); // Clear form error when user types
+
+    // Only validate if field has been touched
+    if (emailTouched) {
+      const emailError = validateEmail(newEmail);
+      if (emailError) {
+        setErrors((prev) => ({ ...prev, email: emailError }));
+      } else {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.email;
+          return newErrors;
+        });
+      }
+    }
+  };
+
+  const handleEmailBlur = () => {
+    setEmailTouched(true);
+    const emailError = validateEmail(email);
+    if (emailError) {
+      setErrors((prev) => ({ ...prev, email: emailError }));
+    } else {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.email;
+        return newErrors;
+      });
+    }
   };
 
   const handleSignin = async (e) => {
@@ -73,8 +151,10 @@ function Basic() {
     setLoading(true);
 
     try {
+      // Trim email before sending
+      const trimmedEmail = email.trim();
       const response = await axiosInstance.post("/api/signin/", {
-        email,
+        email: trimmedEmail,
         password,
       });
 
@@ -85,7 +165,7 @@ function Basic() {
         localStorage.setItem("refresh_token", data.refresh);
 
         if (rememberMe) {
-          localStorage.setItem("remembered_email", email);
+          localStorage.setItem("remembered_email", trimmedEmail);
         } else {
           localStorage.removeItem("remembered_email");
         }
@@ -166,7 +246,8 @@ function Basic() {
                 label="Email"
                 fullWidth
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleEmailChange}
+                onBlur={handleEmailBlur}
                 error={!!errors.email}
                 helperText={errors.email}
                 FormHelperTextProps={{
@@ -175,7 +256,9 @@ function Basic() {
                 InputProps={{
                   startAdornment: (
                     <MDBox sx={{ mr: 1, display: "flex", alignItems: "center" }}>
-                      <EmailIcon sx={{ color: "text.secondary", fontSize: 20 }} />
+                      <EmailIcon
+                        sx={{ color: errors.email ? "error.main" : "text.secondary", fontSize: 20 }}
+                      />
                     </MDBox>
                   ),
                 }}

@@ -23,25 +23,112 @@ function Cover() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState("");
+  const [emailTouched, setEmailTouched] = useState(false);
 
   const navigate = useNavigate();
+
+  // Comprehensive email validation function
+  const validateEmail = (emailValue) => {
+    if (!emailValue) {
+      return "Email is required";
+    }
+    // Trim whitespace
+    const trimmedEmail = emailValue.trim();
+    // Basic format check
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      return "Please enter a valid email address";
+    }
+
+    // Check for common email format issues
+    if (trimmedEmail.includes("..")) {
+      return "Email cannot contain consecutive dots";
+    }
+
+    if (trimmedEmail.startsWith(".") || trimmedEmail.endsWith(".")) {
+      return "Email cannot start or end with a dot";
+    }
+
+    if (trimmedEmail.startsWith("@") || trimmedEmail.endsWith("@")) {
+      return "Email format is invalid";
+    }
+
+    // Check domain has at least one dot after @
+    const domainPart = trimmedEmail.split("@")[1];
+    if (!domainPart || !domainPart.includes(".")) {
+      return "Email domain is invalid";
+    }
+
+    // Check domain extension
+    const domainParts = domainPart.split(".");
+    if (domainParts.length < 2 || domainParts[domainParts.length - 1].length < 2) {
+      return "Email domain extension is invalid";
+    }
+
+    return null; // Valid email
+  };
 
   const validate = () => {
     const newErrors = {};
 
-    if (!name.trim()) newErrors.name = "Name is required";
+    if (!name.trim()) {
+      newErrors.name = "Name is required";
+    }
 
-    if (!email) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Email is invalid";
+    const emailError = validateEmail(email);
+    if (emailError) {
+      newErrors.email = emailError;
+    }
 
-    if (!password) newErrors.password = "Password is required";
-    else if (password.length < 6) newErrors.password = "Password must be at least 6 characters";
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
 
-    if (!confirmPassword) newErrors.confirmPassword = "Please confirm your password";
-    else if (password !== confirmPassword) newErrors.confirmPassword = "Passwords do not match";
+    if (!confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  // Real-time email validation
+  const handleEmailChange = (e) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+    setFormError(""); // Clear form error when user types
+
+    // Only validate if field has been touched
+    if (emailTouched) {
+      const emailError = validateEmail(newEmail);
+      if (emailError) {
+        setErrors((prev) => ({ ...prev, email: emailError }));
+      } else {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.email;
+          return newErrors;
+        });
+      }
+    }
+  };
+
+  const handleEmailBlur = () => {
+    setEmailTouched(true);
+    const emailError = validateEmail(email);
+    if (emailError) {
+      setErrors((prev) => ({ ...prev, email: emailError }));
+    } else {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.email;
+        return newErrors;
+      });
+    }
   };
 
   const handleSignup = async (e) => {
@@ -53,16 +140,18 @@ function Cover() {
     setLoading(true);
 
     try {
+      // Trim email before sending
+      const trimmedEmail = email.trim();
       const response = await axiosInstance.post("/api/signup/", {
-        name,
-        email,
+        name: name.trim(),
+        email: trimmedEmail,
         password,
       });
 
       const data = response.data;
       console.log(data);
 
-      navigate("/sign-in", { state: { email, password } });
+      navigate("/sign-in", { state: { email: trimmedEmail, password } });
     } catch (err) {
       console.error("Error during sign up:", err);
 
@@ -149,7 +238,8 @@ function Cover() {
                 label="Email"
                 fullWidth
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleEmailChange}
+                onBlur={handleEmailBlur}
                 error={!!errors.email}
                 helperText={errors.email}
                 FormHelperTextProps={{
@@ -158,7 +248,9 @@ function Cover() {
                 InputProps={{
                   startAdornment: (
                     <MDBox sx={{ mr: 1, display: "flex", alignItems: "center" }}>
-                      <EmailIcon sx={{ color: "text.secondary", fontSize: 20 }} />
+                      <EmailIcon
+                        sx={{ color: errors.email ? "error.main" : "text.secondary", fontSize: 20 }}
+                      />
                     </MDBox>
                   ),
                 }}
