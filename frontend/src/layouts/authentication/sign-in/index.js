@@ -28,8 +28,27 @@ function Basic() {
     return rememberedEmail || "";
   };
 
-  const [email, setEmail] = useState(location.state?.email || queryEmail || getRememberedEmail());
-  const [password, setPassword] = useState(location.state?.password || queryPassword || "");
+  const getLastLoginCredentials = () => {
+    // Check sessionStorage for last login credentials (from logout)
+    const lastEmail = sessionStorage.getItem("last_login_email");
+    const lastPassword = sessionStorage.getItem("last_login_password");
+
+    // Clear sessionStorage after reading (one-time use)
+    if (lastEmail && lastPassword) {
+      sessionStorage.removeItem("last_login_email");
+      sessionStorage.removeItem("last_login_password");
+      return { email: lastEmail, password: lastPassword };
+    }
+    return { email: "", password: "" };
+  };
+
+  const lastLoginCreds = getLastLoginCredentials();
+  const [email, setEmail] = useState(
+    location.state?.email || queryEmail || lastLoginCreds.email || getRememberedEmail()
+  );
+  const [password, setPassword] = useState(
+    location.state?.password || queryPassword || lastLoginCreds.password || ""
+  );
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
   const [rememberMe, setRememberMe] = useState(!!localStorage.getItem("remembered_email"));
@@ -218,6 +237,10 @@ function Basic() {
         } else {
           localStorage.removeItem("remembered_email");
         }
+
+        // Store credentials in sessionStorage for quick re-login after logout
+        sessionStorage.setItem("last_login_email", trimmedEmail);
+        sessionStorage.setItem("last_login_password", password);
 
         navigate("/dashboard");
       } else {
