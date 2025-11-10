@@ -362,7 +362,6 @@ function FAQ() {
             textAlign: "center",
           }}
         >
-          <Settings sx={{ fontSize: 48, color: "white", mb: 2, opacity: 0.9 }} />
           <MDTypography variant="h4" fontWeight="bold" color="white" mb={2}>
             Still Have Questions?
           </MDTypography>

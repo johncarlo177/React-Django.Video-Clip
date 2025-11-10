@@ -5,6 +5,7 @@ import List from "@mui/material/List";
 import Divider from "@mui/material/Divider";
 import Link from "@mui/material/Link";
 import Icon from "@mui/material/Icon";
+import VideocamIcon from "@mui/icons-material/Videocam";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
@@ -23,7 +24,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const [controller, dispatch] = useMaterialUIController();
   const { miniSidenav, transparentSidenav, whiteSidenav, darkMode, sidenavColor } = controller;
   const location = useLocation();
-  const collapseName = location.pathname.replace("/", "");
+  const collapseName = location.pathname.replace("/", "").toLowerCase();
 
   const handleLogout = async () => {
     try {
@@ -85,6 +86,12 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
       let returnValue;
 
       if (type === "collapse") {
+        // Check if current route matches - handle both key and route path matching
+        const isActive = route
+          ? location.pathname.toLowerCase() === route.toLowerCase() ||
+            location.pathname.toLowerCase().startsWith(route.toLowerCase() + "/")
+          : key.toLowerCase() === collapseName;
+
         returnValue = href ? (
           <Link
             href={href}
@@ -93,16 +100,11 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
             rel="noreferrer"
             sx={{ textDecoration: "none" }}
           >
-            <SidenavCollapse
-              name={name}
-              icon={icon}
-              active={key === collapseName}
-              noCollapse={noCollapse}
-            />
+            <SidenavCollapse name={name} icon={icon} active={isActive} noCollapse={noCollapse} />
           </Link>
         ) : (
           <NavLink key={key} to={route}>
-            <SidenavCollapse name={name} icon={icon} active={key === collapseName} />
+            <SidenavCollapse name={name} icon={icon} active={isActive} />
           </NavLink>
         );
       } else if (type === "title") {
@@ -158,7 +160,20 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
           </MDTypography>
         </MDBox>
         <MDBox component={NavLink} to="/" display="flex" alignItems="center">
-          {brand && <MDBox component="img" src={brand} alt="Brand" width="2rem" />}
+          <MDBox
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "2rem",
+              height: "2rem",
+              borderRadius: "50%",
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              mr: 1,
+            }}
+          >
+            <VideocamIcon sx={{ fontSize: "1.5rem", color: "white" }} />
+          </MDBox>
           <MDBox
             width={!brandName && "100%"}
             sx={(theme) => sidenavLogoLabel(theme, { miniSidenav })}

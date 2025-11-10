@@ -15,6 +15,8 @@ from .serializers import DropboxUploadSerializer
 from .models import User, DropboxUpload
 from payments.models import Payment 
 from django.db.models import Count, OuterRef, Subquery
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 
 User = get_user_model()
 
@@ -736,3 +738,112 @@ def admin_view_payment(request):
             })
 
     return Response(data)
+
+# Contact Form
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def contact_form(request):
+    try:
+        name = request.data.get("name", "").strip()
+        email = request.data.get("email", "").strip()
+        subject = request.data.get("subject", "").strip()
+        message = request.data.get("message", "").strip()
+
+        # Validation
+        if not name:
+            return Response({"error": "Name is required"}, status=status.HTTP_400_BAD_REQUEST)
+        if not email:
+            return Response({"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+        if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
+            return Response({"error": "Invalid email format"}, status=status.HTTP_400_BAD_REQUEST)
+        if not subject:
+            return Response({"error": "Subject is required"}, status=status.HTTP_400_BAD_REQUEST)
+        if not message:
+            return Response({"error": "Message is required"}, status=status.HTTP_400_BAD_REQUEST)
+        if len(message) < 10:
+            return Response({"error": "Message must be at least 10 characters"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check email configuration
+        email_user = settings.EMAIL_HOST_USER
+        email_password = settings.EMAIL_HOST_PASSWORD
+        
+        if not email_user or not email_password:
+            print("Email configuration missing: EMAIL_HOST_USER or EMAIL_HOST_PASSWORD not set")
+            return Response(
+                {"error": "Email service is not configured. Please contact the administrator."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        # Email content
+        admin_email = "inmc050817@gmail.com"
+        email_subject = f"Contact Form: {subject}"
+        
+        email_body = f"""New contact form submission from Auto-Clipper:
+
+Name: {name}
+Email: {email}
+Subject: {subject}
+
+Message:
+{message}
+
+---
+This message was sent from the Auto-Clipper contact form.
+        """
+
+        # Send email
+        try:
+            send_mail(
+                subject=email_subject,
+                message=email_body,
+                from_email=email_user,
+                recipient_list=[admin_email],
+                fail_silently=False,
+            )
+        except Exception as email_error:
+            error_msg = str(email_error)
+            print(f"Email sending error: {error_msg}")
+            
+            # Return more specific error message
+            if "authentication failed" in error_msg.lower() or "535" in error_msg:
+                return Response(
+                    {"error": "Email authentication failed. Please check email credentials."},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+            elif "connection" in error_msg.lower() or "timeout" in error_msg.lower():
+                return Response(
+                    {"error": "Email service connection failed. Please try again later."},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+            else:
+                # In debug mode, return the actual error
+                if settings.DEBUG:
+                    return Response(
+                        {"error": f"Email error: {error_msg}"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    )
+                return Response(
+                    {"error": "Failed to send email. Please try again later."},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+        return Response(
+            {"message": "Your message has been sent successfully. We'll get back to you soon!"},
+            status=status.HTTP_200_OK
+        )
+
+    except Exception as e:
+        error_msg = str(e)
+        print(f"Error in contact_form: {error_msg}")
+        
+        # Return more detailed error in debug mode
+        if settings.DEBUG:
+            return Response(
+                {"error": f"Server error: {error_msg}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+        return Response(
+            {"error": "Failed to send message. Please try again later."},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

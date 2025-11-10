@@ -164,3 +164,19 @@ CORS_ALLOW_ALL_ORIGINS = True
 # ]
 
 ALLOWED_HOSTS = ["*"]
+
+# Email Configuration
+# Use console backend for testing if password is not set
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+if EMAIL_HOST_PASSWORD:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+else:
+    # Fallback to console backend for testing
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    print("WARNING: EMAIL_HOST_PASSWORD not set. Using console email backend for testing.")
+
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'inmc050817@gmail.com')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
