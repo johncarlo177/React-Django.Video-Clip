@@ -246,24 +246,51 @@ function Contact() {
                       target="_blank"
                       rel="noopener noreferrer"
                       sx={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 2,
-                        background: `linear-gradient(135deg, ${social.color} 0%, ${social.color}dd 100%)`,
+                        width: 40,
+                        height: 40,
+                        borderRadius: "50%",
+                        border: "2px solid",
+                        borderColor: "grey.300",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        color: "white",
                         textDecoration: "none",
-                        transition: "all 0.3s ease",
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                        backgroundColor: "transparent",
+                        position: "relative",
+                        overflow: "hidden",
+                        "&::before": {
+                          content: '""',
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          background: `linear-gradient(135deg, ${social.color}15 0%, ${social.color}05 100%)`,
+                          opacity: 0,
+                          transition: "opacity 0.3s ease",
+                        },
+                        "& svg": {
+                          color: "text.secondary",
+                          transition: "all 0.3s ease",
+                          zIndex: 1,
+                          position: "relative",
+                        },
                         "&:hover": {
-                          transform: "translateY(-4px)",
-                          boxShadow: `0 6px 16px ${social.color}40`,
+                          transform: "translateY(-6px) scale(1.05)",
+                          borderColor: social.color,
+                          boxShadow: `0 8px 24px ${social.color}25`,
+                          "&::before": {
+                            opacity: 1,
+                          },
+                          "& svg": {
+                            color: social.color,
+                            transform: "scale(1.1)",
+                          },
                         },
                       }}
                     >
-                      {React.cloneElement(social.icon, { sx: { fontSize: 24 } })}
+                      {React.cloneElement(social.icon, { sx: { fontSize: 26 } })}
                     </MDBox>
                   ))}
                 </MDBox>
