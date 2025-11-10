@@ -4,16 +4,18 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-  TableHead,
   TableRow,
-  Paper,
-  Typography,
-  CircularProgress,
+  Card,
+  Grid,
   Chip,
-  Box,
+  CircularProgress,
+  Avatar,
 } from "@mui/material";
+import PeopleIcon from "@mui/icons-material/People";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
+import MDBox from "components/MDBox";
+import MDTypography from "components/MDTypography";
 import axiosInstance from "libs/axios";
 
 function AdminDashboard() {
@@ -53,63 +55,234 @@ function AdminDashboard() {
   return (
     <DashboardLayout>
       <DashboardNavbar />
-      <Box sx={{ p: 4 }}>
-        <Typography variant="h5" fontWeight="bold" mb={3}>
-          👥 User Lists
-        </Typography>
+      <MDBox mt={4} mb={4}>
+        {/* Header Section */}
+        <MDBox
+          sx={{
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            borderRadius: 3,
+            p: 4,
+            mb: 4,
+            position: "relative",
+            overflow: "hidden",
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background:
+                "radial-gradient(circle at 30% 50%, rgba(255,255,255,0.1) 0%, transparent 50%)",
+              pointerEvents: "none",
+            },
+          }}
+        >
+          <MDBox position="relative" zIndex={1} display="flex" alignItems="center" gap={2}>
+            <MDBox
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: "50%",
+                bgcolor: "rgba(255,255,255,0.2)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backdropFilter: "blur(10px)",
+              }}
+            >
+              <PeopleIcon sx={{ fontSize: 32, color: "white" }} />
+            </MDBox>
+            <MDBox>
+              <MDTypography variant="h4" fontWeight="bold" color="white" mb={0.5}>
+                User Management
+              </MDTypography>
+              <MDTypography variant="body2" color="white" opacity={0.9}>
+                View and manage all registered users
+              </MDTypography>
+            </MDBox>
+          </MDBox>
+        </MDBox>
 
         {loading ? (
-          <Box display="flex" justifyContent="center" alignItems="center" height="40vh">
+          <MDBox display="flex" justifyContent="center" alignItems="center" minHeight="40vh">
             <CircularProgress />
-          </Box>
+          </MDBox>
+        ) : users.length > 0 ? (
+          <>
+            {/* Desktop Table View */}
+            <MDBox
+              sx={{
+                display: { xs: "none", md: "block" },
+                borderRadius: 3,
+                boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                bgColor: "white",
+                overflow: "hidden",
+              }}
+            >
+              <TableContainer>
+                <Table>
+                  <TableBody>
+                    {users.map((u, i) => (
+                      <TableRow
+                        key={i}
+                        sx={{
+                          "&:hover": {
+                            backgroundColor: "grey.50",
+                            transition: "0.3s",
+                          },
+                        }}
+                      >
+                        <TableCell>
+                          <MDBox display="flex" alignItems="center" gap={1.5}>
+                            <Avatar
+                              sx={{
+                                width: 40,
+                                height: 40,
+                                bgcolor: "#667eea",
+                                fontSize: "1rem",
+                                fontWeight: "bold",
+                              }}
+                            >
+                              {u.username.charAt(0).toUpperCase()}
+                            </Avatar>
+                            <MDTypography variant="body1" fontWeight="medium" color="text">
+                              {u.username}
+                            </MDTypography>
+                          </MDBox>
+                        </TableCell>
+                        <TableCell>
+                          <MDTypography variant="body2" color="text">
+                            {u.email}
+                          </MDTypography>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Chip
+                            label={`${u.uploaded_count} ${
+                              u.uploaded_count === 1 ? "video" : "videos"
+                            }`}
+                            color="info"
+                            size="small"
+                            sx={{ fontWeight: 600 }}
+                          />
+                        </TableCell>
+                        <TableCell align="center">
+                          <Chip
+                            label={u.payment_status || "No Payment"}
+                            color={getStatusColor(u.payment_status)}
+                            size="small"
+                            sx={{
+                              fontWeight: 600,
+                              color: "white !important",
+                              textTransform: "capitalize",
+                            }}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </MDBox>
+
+            {/* Mobile Card View */}
+            <MDBox
+              sx={{
+                display: { xs: "block", md: "none" },
+              }}
+            >
+              <Grid container spacing={2}>
+                {users.map((u, i) => (
+                  <Grid item xs={12} key={i}>
+                    <Card
+                      sx={{
+                        borderRadius: 3,
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+                        transition: "all 0.3s ease",
+                        "&:hover": {
+                          transform: "translateY(-4px)",
+                          boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
+                        },
+                      }}
+                    >
+                      <MDBox p={3}>
+                        <MDBox display="flex" alignItems="center" gap={2} mb={2}>
+                          <Avatar
+                            sx={{
+                              width: 56,
+                              height: 56,
+                              bgcolor: "#667eea",
+                              fontSize: "1.5rem",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            {u.username.charAt(0).toUpperCase()}
+                          </Avatar>
+                          <MDBox>
+                            <MDTypography variant="h6" fontWeight="bold" color="text">
+                              {u.username}
+                            </MDTypography>
+                            <MDTypography variant="body2" color="text.secondary">
+                              {u.email}
+                            </MDTypography>
+                          </MDBox>
+                        </MDBox>
+
+                        <MDBox display="flex" gap={1.5} flexWrap="wrap">
+                          <Chip
+                            label={`${u.uploaded_count} ${
+                              u.uploaded_count === 1 ? "video" : "videos"
+                            }`}
+                            color="info"
+                            size="small"
+                            sx={{ fontWeight: 600 }}
+                          />
+                          <Chip
+                            label={u.payment_status || "No Payment"}
+                            color={getStatusColor(u.payment_status)}
+                            size="small"
+                            sx={{
+                              fontWeight: 600,
+                              color: "white !important",
+                              textTransform: "capitalize",
+                            }}
+                          />
+                        </MDBox>
+                      </MDBox>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </MDBox>
+          </>
         ) : (
-          <TableContainer
-            component={Paper}
-            elevation={4}
+          <MDBox
             sx={{
+              textAlign: "center",
+              py: 8,
+              px: 3,
               borderRadius: 3,
-              overflow: "hidden",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+              bgColor: "white",
             }}
           >
-            <Table>
-              <TableBody>
-                {users.map((u, i) => (
-                  <TableRow
-                    key={i}
-                    sx={{
-                      paddingX: "10px",
-                      "&:hover": {
-                        backgroundColor: "#f9fafb",
-                        transition: "0.3s",
-                      },
-                    }}
-                  >
-                    <TableCell sx={{ paddingLeft: "30px" }}>{u.username}</TableCell>
-                    <TableCell>{u.email}</TableCell>
-                    <TableCell>
-                      {u.uploaded_count}{" "}
-                      {u.uploaded_count === 1 || u.uploaded_count === 0 ? "video" : "videos"}{" "}
-                      uploaded
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={u.payment_status || "No Payment"}
-                        color={getStatusColor(u.payment_status)}
-                        variant="outlined"
-                        sx={{
-                          fontWeight: 500,
-                          textTransform: "capitalize",
-                        }}
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+            <PeopleIcon
+              sx={{
+                fontSize: 80,
+                color: "text.secondary",
+                opacity: 0.3,
+                mb: 2,
+              }}
+            />
+            <MDTypography variant="h5" fontWeight="medium" color="text" mb={1}>
+              No Users Yet
+            </MDTypography>
+            <MDTypography variant="body2" color="text" opacity={0.7}>
+              Users will appear here once they register
+            </MDTypography>
+          </MDBox>
         )}
-      </Box>
+      </MDBox>
     </DashboardLayout>
   );
 }
