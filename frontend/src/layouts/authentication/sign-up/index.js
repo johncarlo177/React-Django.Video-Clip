@@ -8,6 +8,8 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import PersonIcon from "@mui/icons-material/Person";
 import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDInput from "components/MDInput";
@@ -24,6 +26,8 @@ function Cover() {
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState("");
   const [emailTouched, setEmailTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
 
   const navigate = useNavigate();
 
@@ -68,6 +72,48 @@ function Cover() {
     return null; // Valid email
   };
 
+  // Password validation function
+  const validatePassword = (passwordValue) => {
+    if (!passwordValue) {
+      return "Password is required";
+    }
+
+    const requirements = getPasswordRequirements(passwordValue);
+    const unmetRequirements = Object.values(requirements).filter((req) => !req.met);
+
+    if (unmetRequirements.length > 0) {
+      return unmetRequirements.map((req) => req.message).join(". ");
+    }
+
+    return null; // Valid password
+  };
+
+  // Get password requirements status
+  const getPasswordRequirements = (passwordValue) => {
+    return {
+      length: {
+        met: passwordValue.length >= 8,
+        message: "At least 8 characters",
+      },
+      uppercase: {
+        met: /[A-Z]/.test(passwordValue),
+        message: "One uppercase letter",
+      },
+      lowercase: {
+        met: /[a-z]/.test(passwordValue),
+        message: "One lowercase letter",
+      },
+      number: {
+        met: /[0-9]/.test(passwordValue),
+        message: "One number",
+      },
+      special: {
+        met: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(passwordValue),
+        message: "One special character",
+      },
+    };
+  };
+
   const validate = () => {
     const newErrors = {};
 
@@ -80,10 +126,9 @@ function Cover() {
       newErrors.email = emailError;
     }
 
-    if (!password) {
-      newErrors.password = "Password is required";
-    } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      newErrors.password = passwordError;
     }
 
     if (!confirmPassword) {
@@ -126,6 +171,76 @@ function Cover() {
       setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors.email;
+        return newErrors;
+      });
+    }
+  };
+
+  // Real-time password validation
+  const handlePasswordChange = (e) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    setFormError(""); // Clear form error when user types
+    setShowPasswordRequirements(true);
+
+    // Only validate if field has been touched
+    if (passwordTouched) {
+      const passwordError = validatePassword(newPassword);
+      if (passwordError) {
+        setErrors((prev) => ({ ...prev, password: passwordError }));
+      } else {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.password;
+          return newErrors;
+        });
+      }
+    }
+
+    // Validate confirm password if it has a value
+    if (confirmPassword) {
+      if (newPassword !== confirmPassword) {
+        setErrors((prev) => ({
+          ...prev,
+          confirmPassword: "Passwords do not match",
+        }));
+      } else {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.confirmPassword;
+          return newErrors;
+        });
+      }
+    }
+  };
+
+  const handlePasswordBlur = () => {
+    setPasswordTouched(true);
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setErrors((prev) => ({ ...prev, password: passwordError }));
+    } else {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.password;
+        return newErrors;
+      });
+    }
+  };
+
+  const handleConfirmPasswordChange = (e) => {
+    const newConfirmPassword = e.target.value;
+    setConfirmPassword(newConfirmPassword);
+
+    if (newConfirmPassword && password !== newConfirmPassword) {
+      setErrors((prev) => ({
+        ...prev,
+        confirmPassword: "Passwords do not match",
+      }));
+    } else {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.confirmPassword;
         return newErrors;
       });
     }
@@ -263,7 +378,9 @@ function Cover() {
                 label="Password"
                 fullWidth
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handlePasswordChange}
+                onBlur={handlePasswordBlur}
+                onFocus={() => setShowPasswordRequirements(true)}
                 error={!!errors.password}
                 helperText={errors.password}
                 FormHelperTextProps={{
@@ -272,11 +389,65 @@ function Cover() {
                 InputProps={{
                   startAdornment: (
                     <MDBox sx={{ mr: 1, display: "flex", alignItems: "center" }}>
-                      <LockIcon sx={{ color: "text.secondary", fontSize: 20 }} />
+                      <LockIcon
+                        sx={{
+                          color: errors.password ? "error.main" : "text.secondary",
+                          fontSize: 20,
+                        }}
+                      />
                     </MDBox>
                   ),
                 }}
               />
+              {showPasswordRequirements && password.length > 0 && (
+                <MDBox
+                  mt={1.5}
+                  p={2}
+                  sx={{
+                    bgcolor: "grey.50",
+                    borderRadius: 2,
+                    border: "1px solid",
+                    borderColor: "grey.300",
+                  }}
+                >
+                  <MDTypography
+                    variant="caption"
+                    fontWeight="medium"
+                    color="text"
+                    mb={1}
+                    display="block"
+                  >
+                    Password Requirements:
+                  </MDTypography>
+                  {Object.entries(getPasswordRequirements(password)).map(([key, requirement]) => (
+                    <MDBox
+                      key={key}
+                      display="flex"
+                      alignItems="center"
+                      gap={1}
+                      mb={0.5}
+                      sx={{
+                        opacity: requirement.met ? 1 : 0.7,
+                      }}
+                    >
+                      {requirement.met ? (
+                        <CheckCircleIcon sx={{ fontSize: 16, color: "success.main" }} />
+                      ) : (
+                        <CancelIcon sx={{ fontSize: 16, color: "error.main" }} />
+                      )}
+                      <MDTypography
+                        variant="caption"
+                        color={requirement.met ? "success.main" : "text"}
+                        sx={{
+                          textDecoration: requirement.met ? "none" : "line-through",
+                        }}
+                      >
+                        {requirement.message}
+                      </MDTypography>
+                    </MDBox>
+                  ))}
+                </MDBox>
+              )}
             </MDBox>
 
             <MDBox mb={3}>
@@ -285,7 +456,7 @@ function Cover() {
                 label="Confirm Password"
                 fullWidth
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={handleConfirmPasswordChange}
                 error={!!errors.confirmPassword}
                 helperText={errors.confirmPassword}
                 FormHelperTextProps={{
@@ -294,7 +465,12 @@ function Cover() {
                 InputProps={{
                   startAdornment: (
                     <MDBox sx={{ mr: 1, display: "flex", alignItems: "center" }}>
-                      <LockIcon sx={{ color: "text.secondary", fontSize: 20 }} />
+                      <LockIcon
+                        sx={{
+                          color: errors.confirmPassword ? "error.main" : "text.secondary",
+                          fontSize: 20,
+                        }}
+                      />
                     </MDBox>
                   ),
                 }}

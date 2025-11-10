@@ -35,6 +35,7 @@ function Basic() {
   const [rememberMe, setRememberMe] = useState(!!localStorage.getItem("remembered_email"));
   const [loading, setLoading] = useState(false);
   const [emailTouched, setEmailTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
 
   useEffect(() => {
     const inputs = document.querySelectorAll("input");
@@ -86,6 +87,17 @@ function Basic() {
     return null; // Valid email
   };
 
+  // Password validation function for sign-in (simpler than sign-up)
+  const validatePassword = (passwordValue) => {
+    if (!passwordValue) {
+      return "Password is required";
+    }
+    if (passwordValue.length < 6) {
+      return "Password must be at least 6 characters";
+    }
+    return null; // Valid password
+  };
+
   const validate = () => {
     const newErrors = {};
 
@@ -94,10 +106,9 @@ function Basic() {
       newErrors.email = emailError;
     }
 
-    if (!password) {
-      newErrors.password = "Password is required";
-    } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      newErrors.password = passwordError;
     }
 
     setErrors(newErrors);
@@ -134,6 +145,41 @@ function Basic() {
       setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors.email;
+        return newErrors;
+      });
+    }
+  };
+
+  // Real-time password validation
+  const handlePasswordChange = (e) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    setFormError(""); // Clear form error when user types
+
+    // Only validate if field has been touched
+    if (passwordTouched) {
+      const passwordError = validatePassword(newPassword);
+      if (passwordError) {
+        setErrors((prev) => ({ ...prev, password: passwordError }));
+      } else {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.password;
+          return newErrors;
+        });
+      }
+    }
+  };
+
+  const handlePasswordBlur = () => {
+    setPasswordTouched(true);
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setErrors((prev) => ({ ...prev, password: passwordError }));
+    } else {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.password;
         return newErrors;
       });
     }
@@ -271,7 +317,8 @@ function Basic() {
                 label="Password"
                 fullWidth
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handlePasswordChange}
+                onBlur={handlePasswordBlur}
                 error={!!errors.password}
                 helperText={errors.password}
                 FormHelperTextProps={{
@@ -280,7 +327,12 @@ function Basic() {
                 InputProps={{
                   startAdornment: (
                     <MDBox sx={{ mr: 1, display: "flex", alignItems: "center" }}>
-                      <LockIcon sx={{ color: "text.secondary", fontSize: 20 }} />
+                      <LockIcon
+                        sx={{
+                          color: errors.password ? "error.main" : "text.secondary",
+                          fontSize: 20,
+                        }}
+                      />
                     </MDBox>
                   ),
                 }}
