@@ -92,8 +92,8 @@ function Basic() {
     if (!passwordValue) {
       return "Password is required";
     }
-    if (passwordValue.length < 6) {
-      return "Password must be at least 6 characters";
+    if (passwordValue.length < 8) {
+      return "Password must be at least 8 characters";
     }
     return null; // Valid password
   };
@@ -186,12 +186,15 @@ function Basic() {
   };
 
   const handleSignin = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
     setFormError("");
 
     if (!validate()) {
-      return false;
+      return;
     }
 
     setLoading(true);
@@ -231,8 +234,6 @@ function Basic() {
       setFormError(errorMessage);
       setLoading(false);
     }
-
-    return false;
   };
 
   const handleSetRememberMe = () => setRememberMe(!rememberMe);
@@ -281,7 +282,11 @@ function Basic() {
           <MDBox
             component="form"
             role="form"
-            onSubmit={handleSignin}
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSignin(e);
+            }}
             autoComplete="off"
             noValidate
             sx={{ "& .MuiFormControl-root": { width: "100%" } }}
@@ -377,11 +382,16 @@ function Basic() {
 
             <MDBox mt={4} mb={2}>
               <MDButton
-                type="submit"
+                type="button"
                 variant="gradient"
                 color="info"
                 fullWidth
                 disabled={loading}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleSignin(e);
+                }}
                 sx={{
                   py: 1.5,
                   fontSize: "1rem",

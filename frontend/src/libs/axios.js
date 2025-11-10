@@ -39,8 +39,16 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // Skip token refresh for authentication endpoints (sign-in, sign-up, admin-signin)
+    // These endpoints should handle their own errors without triggering token refresh
+    const authEndpoints = ["/api/signin/", "/api/signup/", "/api/admin-signin/"];
+    const isAuthEndpoint = authEndpoints.some((endpoint) =>
+      originalRequest.url?.includes(endpoint)
+    );
+
     // Check if error is 401 Unauthorized and retry has not been done yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Skip if it's an authentication endpoint
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       originalRequest._retry = true;
 
       try {
