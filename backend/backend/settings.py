@@ -48,13 +48,13 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # CORS middleware should be as high as possible
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware", 
 ]
 
@@ -150,12 +150,36 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
+# CORS Configuration
 CORS_ALLOWED_ORIGINS = [
-    "https://react-django-video-clip.onrender.com",  # Use the actual domain
-    "http://localhost:3000",  # For local dev if you have it
+    "https://autoclipper2741.vercel.app",  # Vercel frontend
+    "http://localhost:3000",  # Local development
 ]
 
+# Allow all origins (for development/testing - you can set to False and use CORS_ALLOWED_ORIGINS in production)
 CORS_ALLOW_ALL_ORIGINS = True
+
+# Additional CORS settings for preflight requests
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 # ALLOWED_HOSTS = [
 #     "localhost",
