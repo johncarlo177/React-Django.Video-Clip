@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Accordion, AccordionSummary, AccordionDetails, Grid, Fade, Chip } from "@mui/material";
+import { Accordion, AccordionSummary, AccordionDetails, Grid, Fade, Card } from "@mui/material";
 import {
   ExpandMore,
   HelpOutline,
@@ -8,9 +8,9 @@ import {
   CloudUpload,
   AutoAwesome,
   Security,
-  Speed,
   Support,
   Settings,
+  QuestionAnswer,
 } from "@mui/icons-material";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
@@ -187,9 +187,9 @@ function FAQ() {
         <MDBox
           sx={{
             background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-            borderRadius: 3,
-            p: 6,
-            mb: 4,
+            borderRadius: 4,
+            p: { xs: 4, md: 6 },
+            mb: 5,
             textAlign: "center",
             color: "white",
             position: "relative",
@@ -208,145 +208,197 @@ function FAQ() {
           }}
         >
           <MDBox position="relative" zIndex={1}>
-            <HelpOutline sx={{ fontSize: 64, mb: 2, opacity: 0.9 }} />
-            <MDTypography variant="h2" fontWeight="bold" color="white" mb={2}>
+            <QuestionAnswer sx={{ fontSize: { xs: 48, md: 64 }, mb: 2, opacity: 0.9 }} />
+            <MDTypography
+              variant="h2"
+              fontWeight="bold"
+              color="white"
+              mb={2}
+              sx={{ fontSize: { xs: "2rem", md: "3rem" } }}
+            >
               Frequently Asked Questions
             </MDTypography>
-            <MDTypography variant="h6" color="white" opacity={0.9} fontWeight="regular">
+            <MDTypography
+              variant="h6"
+              color="white"
+              opacity={0.9}
+              fontWeight="regular"
+              sx={{ fontSize: { xs: "1rem", md: "1.25rem" } }}
+            >
               Find answers to common questions about Auto-Clipper
             </MDTypography>
           </MDBox>
         </MDBox>
 
         {/* FAQ Categories */}
-        <Grid container spacing={3}>
+        <Grid container spacing={4}>
           {faqCategories.map((category, categoryIndex) => (
-            <Grid item xs={12} key={categoryIndex}>
+            <Grid item xs={12} md={6} key={categoryIndex}>
               <Fade in timeout={300 + categoryIndex * 100}>
-                <MDBox
+                <Card
                   sx={{
-                    mb: 4,
+                    height: "100%",
+                    borderRadius: 4,
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                    border: "1px solid",
+                    borderColor: "grey.200",
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    "&:hover": {
+                      boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                      transform: "translateY(-4px)",
+                    },
+                    overflow: "visible",
                   }}
                 >
-                  {/* Category Header */}
-                  <MDBox
-                    display="flex"
-                    alignItems="center"
-                    gap={2}
-                    mb={3}
-                    sx={{
-                      p: 2,
-                      borderRadius: 2,
-                      background: `linear-gradient(135deg, ${category.color}15 0%, ${category.color}05 100%)`,
-                      borderLeft: `4px solid ${category.color}`,
-                    }}
-                  >
+                  <MDBox p={3}>
+                    {/* Category Header */}
                     <MDBox
+                      display="flex"
+                      alignItems="center"
+                      gap={2}
+                      mb={3}
                       sx={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 2,
-                        background: `linear-gradient(135deg, ${category.color} 0%, ${category.color}dd 100%)`,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "white",
+                        pb: 2,
+                        borderBottom: "2px solid",
+                        borderColor: "grey.100",
                       }}
                     >
-                      {React.cloneElement(category.icon, { sx: { fontSize: 24 } })}
+                      <MDBox
+                        sx={{
+                          width: 56,
+                          height: 56,
+                          borderRadius: "50%",
+                          border: "2px solid",
+                          borderColor: `${category.color}30`,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          backgroundColor: "transparent",
+                          transition: "all 0.3s ease",
+                          "&:hover": {
+                            borderColor: category.color,
+                            backgroundColor: `${category.color}10`,
+                          },
+                        }}
+                      >
+                        {React.cloneElement(category.icon, {
+                          sx: { fontSize: 28, color: category.color },
+                        })}
+                      </MDBox>
+                      <MDBox>
+                        <MDTypography variant="h5" fontWeight="bold" color="text">
+                          {category.title}
+                        </MDTypography>
+                        <MDTypography variant="caption" color="text.secondary" mt={0.5}>
+                          {category.questions.length} questions
+                        </MDTypography>
+                      </MDBox>
                     </MDBox>
-                    <MDTypography variant="h5" fontWeight="bold" color="text">
-                      {category.title}
-                    </MDTypography>
-                    {/* <Chip
-                      label={`${category.questions.length} questions`}
-                      size="small"
-                      sx={{
-                        bgcolor: `${category.color}20`,
-                        color: category.color,
-                        fontWeight: 600,
-                      }}
-                    /> */}
-                  </MDBox>
 
-                  {/* Questions */}
-                  <MDBox>
-                    {category.questions.map((faq, faqIndex) => {
-                      const panelId = `panel-${categoryIndex}-${faqIndex}`;
-                      return (
-                        <Accordion
-                          key={faqIndex}
-                          expanded={expanded === panelId}
-                          onChange={handleChange(panelId)}
-                          sx={{
-                            mb: 2,
-                            borderRadius: 2,
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                            "&:before": {
-                              display: "none",
-                            },
-                            "&.Mui-expanded": {
-                              margin: "0 0 16px 0",
-                            },
-                            transition: "all 0.3s ease",
-                            "&:hover": {
-                              boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
-                            },
-                          }}
-                        >
-                          <AccordionSummary
-                            expandIcon={
-                              <ExpandMore
-                                sx={{
-                                  color: category.color,
-                                  fontSize: 28,
-                                }}
-                              />
-                            }
+                    {/* Questions */}
+                    <MDBox>
+                      {category.questions.map((faq, faqIndex) => {
+                        const panelId = `panel-${categoryIndex}-${faqIndex}`;
+                        const isExpanded = expanded === panelId;
+                        return (
+                          <Accordion
+                            key={faqIndex}
+                            expanded={isExpanded}
+                            onChange={handleChange(panelId)}
                             sx={{
-                              px: 3,
-                              py: 2,
+                              mb: 1.5,
+                              borderRadius: 2,
+                              boxShadow: "none",
+                              border: "1px solid",
+                              borderColor: "grey.200",
+                              backgroundColor: "transparent",
+                              "&:before": {
+                                display: "none",
+                              },
                               "&.Mui-expanded": {
-                                minHeight: 56,
-                                borderBottom: `1px solid ${category.color}20`,
+                                margin: "0 0 12px 0",
+                                borderColor: category.color,
+                                backgroundColor: `${category.color}05`,
+                              },
+                              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                              "&:hover": {
+                                borderColor: `${category.color}50`,
+                                backgroundColor: `${category.color}03`,
                               },
                             }}
                           >
-                            <MDTypography
-                              variant="h6"
-                              fontWeight="medium"
-                              color="text"
+                            <AccordionSummary
+                              expandIcon={
+                                <MDBox
+                                  sx={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: "50%",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    backgroundColor: isExpanded ? category.color : "transparent",
+                                    border: `1px solid ${isExpanded ? category.color : "grey.300"}`,
+                                    transition: "all 0.3s ease",
+                                  }}
+                                >
+                                  <ExpandMore
+                                    sx={{
+                                      color: isExpanded ? "white" : "text.secondary",
+                                      fontSize: 20,
+                                      transition: "transform 0.3s ease",
+                                      transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                                    }}
+                                  />
+                                </MDBox>
+                              }
                               sx={{
-                                pr: 2,
+                                px: 2.5,
+                                py: 2,
+                                "&.Mui-expanded": {
+                                  minHeight: 56,
+                                },
+                                "& .MuiAccordionSummary-content": {
+                                  margin: "12px 0",
+                                },
                               }}
                             >
-                              {faq.question}
-                            </MDTypography>
-                          </AccordionSummary>
-                          <AccordionDetails
-                            sx={{
-                              px: 3,
-                              py: 3,
-                              bgcolor: "grey.50",
-                            }}
-                          >
-                            <MDTypography
-                              variant="body1"
-                              color="text"
+                              <MDTypography
+                                variant="body1"
+                                fontWeight="medium"
+                                color="text"
+                                sx={{
+                                  pr: 2,
+                                  fontSize: "0.95rem",
+                                }}
+                              >
+                                {faq.question}
+                              </MDTypography>
+                            </AccordionSummary>
+                            <AccordionDetails
                               sx={{
-                                lineHeight: 1.8,
-                                opacity: 0.9,
-                                fontSize: "1rem",
+                                px: 2.5,
+                                py: 2,
+                                pt: 0,
                               }}
                             >
-                              {faq.answer}
-                            </MDTypography>
-                          </AccordionDetails>
-                        </Accordion>
-                      );
-                    })}
+                              <MDTypography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{
+                                  lineHeight: 1.8,
+                                  fontSize: "0.9rem",
+                                }}
+                              >
+                                {faq.answer}
+                              </MDTypography>
+                            </AccordionDetails>
+                          </Accordion>
+                        );
+                      })}
+                    </MDBox>
                   </MDBox>
-                </MDBox>
+                </Card>
               </Fade>
             </Grid>
           ))}
@@ -355,40 +407,102 @@ function FAQ() {
         {/* Still Have Questions Section */}
         <MDBox
           mt={6}
-          p={4}
+          component={Card}
           sx={{
-            background: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)",
-            borderRadius: 3,
+            p: { xs: 4, md: 6 },
+            borderRadius: 4,
             textAlign: "center",
+            background: "transparent",
+            border: "2px solid",
+            borderColor: "grey.200",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
+            position: "relative",
+            overflow: "hidden",
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            "&:hover": {
+              borderColor: "#667eea",
+              boxShadow: "0 8px 32px rgba(102, 126, 234, 0.15)",
+              transform: "translateY(-4px)",
+            },
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "linear-gradient(135deg, #667eea08 0%, #764ba208 100%)",
+              opacity: 0,
+              transition: "opacity 0.3s ease",
+              pointerEvents: "none",
+            },
+            "&:hover::before": {
+              opacity: 1,
+            },
           }}
         >
-          <MDTypography variant="h4" fontWeight="bold" color="white" mb={2}>
-            Still Have Questions?
-          </MDTypography>
-          <MDTypography variant="body1" color="white" opacity={0.9} mb={3}>
-            Can&apos;t find the answer you&apos;re looking for? Our support team is here to help!
-          </MDTypography>
-          <MDBox
-            component="a"
-            href="/contact"
-            sx={{
-              display: "inline-block",
-              px: 4,
-              py: 1.5,
-              bgcolor: "white",
-              color: "#fda085",
-              borderRadius: 2,
-              fontWeight: 600,
-              textDecoration: "none",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-              transition: "all 0.3s ease",
-              "&:hover": {
-                transform: "translateY(-2px)",
-                boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
-              },
-            }}
-          >
-            Contact Support
+          <MDBox position="relative" zIndex={1}>
+            <MDBox
+              sx={{
+                width: 80,
+                height: 80,
+                borderRadius: "50%",
+                border: "2px solid",
+                borderColor: "#667eea30",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                mx: "auto",
+                mb: 3,
+                backgroundColor: "transparent",
+                transition: "all 0.3s ease",
+              }}
+            >
+              <QuestionAnswer sx={{ fontSize: 40, color: "#667eea" }} />
+            </MDBox>
+            <MDTypography
+              variant="h4"
+              fontWeight="bold"
+              color="text"
+              mb={2}
+              sx={{ fontSize: { xs: "1.5rem", md: "2rem" } }}
+            >
+              Still Have Questions?
+            </MDTypography>
+            <MDTypography
+              variant="body1"
+              color="text.secondary"
+              mb={4}
+              sx={{ fontSize: { xs: "0.9rem", md: "1rem" }, maxWidth: "600px", mx: "auto" }}
+            >
+              Can&apos;t find the answer you&apos;re looking for? Our support team is here to help!
+            </MDTypography>
+            <MDBox
+              component="a"
+              href="/contact"
+              sx={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 1,
+                px: 4,
+                py: 1.5,
+                bgcolor: "#667eea",
+                color: "white",
+                borderRadius: 3,
+                fontWeight: 600,
+                textDecoration: "none",
+                boxShadow: "0 4px 12px rgba(102, 126, 234, 0.3)",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                "&:hover": {
+                  bgcolor: "#5568d3",
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 8px 20px rgba(102, 126, 234, 0.4)",
+                },
+              }}
+            >
+              <Support sx={{ fontSize: 20 }} />
+              Contact Support
+            </MDBox>
           </MDBox>
         </MDBox>
       </MDBox>
