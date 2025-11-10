@@ -229,89 +229,125 @@ function Dashboard() {
                           )}
                         </TableCell>
                         <TableCell align="center">
-                          <MDBox display="flex" gap={1} justifyContent="left" flexWrap="wrap">
+                          <MDBox display="flex" gap={1.5} justifyContent="left" flexWrap="wrap">
                             <Tooltip title="Download Video">
                               <IconButton
-                                size="small"
+                                size="medium"
                                 onClick={() => handleDownload(video.dropbox_link)}
                                 sx={{
-                                  bgcolor: "success.main",
-                                  color: "white !important",
+                                  width: 40,
+                                  height: 40,
+                                  borderRadius: "50%",
+                                  border: "2px solid",
+                                  borderColor: "grey.300",
+                                  backgroundColor: "transparent",
                                   "& svg": {
-                                    color: "white",
+                                    color: "text.secondary",
+                                    fontSize: 20,
                                   },
                                   "&:hover": {
-                                    bgcolor: "success.dark",
-                                    transform: "scale(1.1)",
+                                    borderColor: "#4caf50",
+                                    backgroundColor: "transparent",
+                                    transform: "translateY(-2px)",
+                                    "& svg": {
+                                      color: "#4caf50",
+                                    },
                                   },
-                                  transition: "all 0.2s ease",
+                                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                                 }}
                               >
-                                <CloudDownloadIcon fontSize="small" />
+                                <CloudDownloadIcon />
                               </IconButton>
                             </Tooltip>
 
                             <Tooltip title="Get Stock Clips">
                               <IconButton
-                                size="small"
+                                size="medium"
                                 onClick={() => handleGetStockClips(video)}
                                 sx={{
-                                  bgcolor: "info.main",
-                                  color: "white !important",
+                                  width: 40,
+                                  height: 40,
+                                  borderRadius: "50%",
+                                  border: "2px solid",
+                                  borderColor: "grey.300",
+                                  backgroundColor: "transparent",
                                   "& svg": {
-                                    color: "white",
+                                    color: "text.secondary",
+                                    fontSize: 20,
                                   },
                                   "&:hover": {
-                                    bgcolor: "info.dark",
-                                    transform: "scale(1.1)",
+                                    borderColor: "#2196f3",
+                                    backgroundColor: "transparent",
+                                    transform: "translateY(-2px)",
+                                    "& svg": {
+                                      color: "#2196f3",
+                                    },
                                   },
-                                  transition: "all 0.2s ease",
+                                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                                 }}
                               >
-                                <SettingsIcon fontSize="small" />
+                                <SettingsIcon />
                               </IconButton>
                             </Tooltip>
 
                             <Tooltip title="Delete Video">
                               <IconButton
-                                size="small"
+                                size="medium"
                                 onClick={() => handleOpenDeleteModal(video.id)}
                                 sx={{
-                                  bgcolor: "error.main",
-                                  color: "white !important",
+                                  width: 40,
+                                  height: 40,
+                                  borderRadius: "50%",
+                                  border: "2px solid",
+                                  borderColor: "grey.300",
+                                  backgroundColor: "transparent",
                                   "& svg": {
-                                    color: "white",
+                                    color: "text.secondary",
+                                    fontSize: 20,
                                   },
                                   "&:hover": {
-                                    bgcolor: "error.dark",
-                                    transform: "scale(1.1)",
+                                    borderColor: "#f44336",
+                                    backgroundColor: "transparent",
+                                    transform: "translateY(-2px)",
+                                    "& svg": {
+                                      color: "#f44336",
+                                    },
                                   },
-                                  transition: "all 0.2s ease",
+                                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                                 }}
                               >
-                                <DeleteIcon fontSize="small" />
+                                <DeleteIcon />
                               </IconButton>
                             </Tooltip>
 
                             {video.zip_link && (
                               <Tooltip title="Download Clips ZIP">
                                 <IconButton
-                                  size="small"
+                                  size="medium"
                                   onClick={() => handleDownload(video.zip_link)}
                                   sx={{
-                                    bgcolor: "warning.main",
-                                    color: "white !important",
+                                    width: 40,
+                                    height: 40,
+                                    borderRadius: "50%",
+                                    border: "2px solid",
+                                    borderColor: "grey.300",
+                                    backgroundColor: "transparent",
                                     "& svg": {
-                                      color: "white",
+                                      color: "text.secondary",
+                                      fontSize: 20,
                                     },
                                     "&:hover": {
-                                      bgcolor: "warning.dark",
-                                      transform: "scale(1.1)",
+                                      borderColor: "#ff9800",
+                                      backgroundColor: "transparent",
+                                      transform: "translateY(-2px)",
+                                      "& svg": {
+                                        color: "#ff9800",
+                                      },
                                     },
-                                    transition: "all 0.2s ease",
+                                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                                   }}
                                 >
-                                  <FileDownloadIcon fontSize="small" />
+                                  <FileDownloadIcon />
                                 </IconButton>
                               </Tooltip>
                             )}
@@ -414,111 +450,126 @@ function Dashboard() {
                         </MDBox>
 
                         {/* Action Buttons */}
-                        <MDBox display="flex" gap={1} flexWrap="wrap" justifyContent="center">
-                          <Tooltip title="Play Video">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleWatch(video.dropbox_link)}
-                              sx={{
-                                bgcolor: "info.main",
-                                color: "white",
-                                "& svg": {
-                                  color: "white",
-                                },
-                                "&:hover": {
-                                  bgcolor: "info.dark",
-                                  transform: "scale(1.1)",
-                                },
-                                transition: "all 0.2s ease",
-                              }}
-                            >
-                              <PlayArrowIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-
+                        <MDBox display="flex" gap={1.5} flexWrap="wrap" justifyContent="center">
                           <Tooltip title="Download Video">
                             <IconButton
-                              size="small"
+                              size="medium"
                               onClick={() => handleDownload(video.dropbox_link)}
                               sx={{
-                                bgcolor: "success.main",
-                                color: "white",
+                                width: 40,
+                                height: 40,
+                                borderRadius: "50%",
+                                border: "2px solid",
+                                borderColor: "grey.300",
+                                backgroundColor: "transparent",
                                 "& svg": {
-                                  color: "white",
+                                  color: "text.secondary",
+                                  fontSize: 20,
                                 },
                                 "&:hover": {
-                                  bgcolor: "success.dark",
-                                  transform: "scale(1.1)",
+                                  borderColor: "#4caf50",
+                                  backgroundColor: "transparent",
+                                  transform: "translateY(-2px)",
+                                  "& svg": {
+                                    color: "#4caf50",
+                                  },
                                 },
-                                transition: "all 0.2s ease",
+                                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                               }}
                             >
-                              <CloudDownloadIcon fontSize="small" />
+                              <CloudDownloadIcon />
                             </IconButton>
                           </Tooltip>
 
                           <Tooltip title="Get Stock Clips">
                             <IconButton
-                              size="small"
+                              size="medium"
                               onClick={() => handleGetStockClips(video)}
                               sx={{
-                                bgcolor: "info.main",
-                                color: "white",
+                                width: 40,
+                                height: 40,
+                                borderRadius: "50%",
+                                border: "2px solid",
+                                borderColor: "grey.300",
+                                backgroundColor: "transparent",
                                 "& svg": {
-                                  color: "white",
+                                  color: "text.secondary",
+                                  fontSize: 20,
                                 },
                                 "&:hover": {
-                                  bgcolor: "info.dark",
-                                  transform: "scale(1.1)",
+                                  borderColor: "#2196f3",
+                                  backgroundColor: "transparent",
+                                  transform: "translateY(-2px)",
+                                  "& svg": {
+                                    color: "#2196f3",
+                                  },
                                 },
-                                transition: "all 0.2s ease",
+                                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                               }}
                             >
-                              <SettingsIcon fontSize="small" />
+                              <SettingsIcon />
                             </IconButton>
                           </Tooltip>
 
                           {video.zip_link && (
                             <Tooltip title="Download Clips ZIP">
                               <IconButton
-                                size="small"
+                                size="medium"
                                 onClick={() => handleDownload(video.zip_link)}
                                 sx={{
-                                  bgcolor: "warning.main",
-                                  color: "white",
+                                  width: 40,
+                                  height: 40,
+                                  borderRadius: "50%",
+                                  border: "2px solid",
+                                  borderColor: "grey.300",
+                                  backgroundColor: "transparent",
                                   "& svg": {
-                                    color: "white",
+                                    color: "text.secondary",
+                                    fontSize: 20,
                                   },
                                   "&:hover": {
-                                    bgcolor: "warning.dark",
-                                    transform: "scale(1.1)",
+                                    borderColor: "#ff9800",
+                                    backgroundColor: "transparent",
+                                    transform: "translateY(-2px)",
+                                    "& svg": {
+                                      color: "#ff9800",
+                                    },
                                   },
-                                  transition: "all 0.2s ease",
+                                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                                 }}
                               >
-                                <FileDownloadIcon fontSize="small" />
+                                <FileDownloadIcon />
                               </IconButton>
                             </Tooltip>
                           )}
 
                           <Tooltip title="Delete Video">
                             <IconButton
-                              size="small"
+                              size="medium"
                               onClick={() => handleOpenDeleteModal(video.id)}
                               sx={{
-                                bgcolor: "error.main",
-                                color: "white",
+                                width: 40,
+                                height: 40,
+                                borderRadius: "50%",
+                                border: "2px solid",
+                                borderColor: "grey.300",
+                                backgroundColor: "transparent",
                                 "& svg": {
-                                  color: "white",
+                                  color: "text.secondary",
+                                  fontSize: 20,
                                 },
                                 "&:hover": {
-                                  bgcolor: "error.dark",
-                                  transform: "scale(1.1)",
+                                  borderColor: "#f44336",
+                                  backgroundColor: "transparent",
+                                  transform: "translateY(-2px)",
+                                  "& svg": {
+                                    color: "#f44336",
+                                  },
                                 },
-                                transition: "all 0.2s ease",
+                                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                               }}
                             >
-                              <DeleteIcon fontSize="small" />
+                              <DeleteIcon />
                             </IconButton>
                           </Tooltip>
                         </MDBox>
